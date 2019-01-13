@@ -1,0 +1,29 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi2TracktionEdit", "Midi2TracktionEdit\Midi2TracktionEdit.csproj", "{DEFF3B36-980A-46D6-8149-B5C3F02600E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi2TracktionEdit.Console", "Midi2TracktionEdit.Console\Midi2TracktionEdit.Console.csproj", "{FA3A73E5-8093-477C-8057-0100BBDFA0FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTracktive", "NTracktive\NTracktive.csproj", "{C1EDFCF2-F8E6-4F3E-A5F6-01878656D950}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DEFF3B36-980A-46D6-8149-B5C3F02600E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEFF3B36-980A-46D6-8149-B5C3F02600E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEFF3B36-980A-46D6-8149-B5C3F02600E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEFF3B36-980A-46D6-8149-B5C3F02600E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1EDFCF2-F8E6-4F3E-A5F6-01878656D950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1EDFCF2-F8E6-4F3E-A5F6-01878656D950}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1EDFCF2-F8E6-4F3E-A5F6-01878656D950}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1EDFCF2-F8E6-4F3E-A5F6-01878656D950}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
