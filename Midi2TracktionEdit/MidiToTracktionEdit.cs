@@ -8,8 +8,10 @@ namespace Midi2TracktionEdit
 	{
 		public void Process (string editTemplateFile, string midiFile)
 		{
-			using (var reader = new XmlTextReader (editTemplateFile) { Namespaces = false })
-				new EditModelLoader ().Load (reader);
+			using (var reader = new XmlTextReader (editTemplateFile) { Namespaces = false }) {
+				var edit = new EditModelReader ().Read (reader);
+				new EditModelWriter ().Write (Console.Out, edit);
+			}
 		}
 	}
 }

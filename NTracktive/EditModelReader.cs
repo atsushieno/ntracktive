@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace NTracktive
 {
-	public class EditModelLoader
+	public class EditModelReader
 	{
 		static string ToPascalCase (string camelCase)
 		{
@@ -66,12 +66,12 @@ namespace NTracktive
 			throw new XmlException ($"Unexpected data for {pi}", null, li.LineNumber, li.LinePosition);
 		}
 
-		public EditElement Load (XmlReader reader)
+		public EditElement Read (XmlReader reader)
 		{
-			return (EditElement) DoLoad (reader);
+			return (EditElement) DoRead (reader);
 		}
 
-		public object DoLoad (XmlReader reader)
+		public object DoRead (XmlReader reader)
 		{
 			var li = reader as IXmlLineInfo;
 			reader.MoveToContent ();
@@ -107,9 +107,9 @@ namespace NTracktive
 					var propTypeName = reader.LocalName + "Element";
 					var prop = type.GetProperties ().FirstOrDefault (p => string.Equals (p.PropertyType.Name, propTypeName, StringComparison.OrdinalIgnoreCase));
 					if (prop != null)
-						prop.SetValue (obj, DoLoad (reader));
+						prop.SetValue (obj, DoRead (reader));
 					else {
-						var itemObj = DoLoad (reader);
+						var itemObj = DoRead (reader);
 						prop = type.GetProperties ().Where (p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition () == typeof (IList<>))
 							.Select (p => new { Property = p, ItemType = p.PropertyType.GetGenericArguments () [0] })
 							.FirstOrDefault (m => m.ItemType.IsAssignableFrom(itemObj.GetType ())/*string.Equals (m.ItemType.Name, propTypeName, StringComparison.OrdinalIgnoreCase)*/)?.Property;

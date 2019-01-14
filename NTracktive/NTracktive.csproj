@@ -33,7 +33,8 @@
   <ItemGroup>
     <Compile Include="EditModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="EditModelLoader.cs" />
+    <Compile Include="EditModelReader.cs" />
+    <Compile Include="EditModelWriter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
