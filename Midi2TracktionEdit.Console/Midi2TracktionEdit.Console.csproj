@@ -38,6 +38,10 @@
       <Project>{DEFF3B36-980A-46D6-8149-B5C3F02600E0}</Project>
       <Name>Midi2TracktionEdit</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NTracktive\NTracktive.csproj">
+      <Project>{C1EDFCF2-F8E6-4F3E-A5F6-01878656D950}</Project>
+      <Name>NTracktive</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

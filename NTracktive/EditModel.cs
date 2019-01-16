@@ -48,8 +48,7 @@ namespace NTracktive
 		public string ModifiedBy { get; set; }
 		[DataType (DataType.Id)]
 		public string MediaId { get; set; }
-		[DataType (DataType.UnixTime)]
-		public long LastSignificantChange { get; set; }
+		public string LastSignificantChange { get; set; }
 
 		// elements
 		public MacroParametersElement MacroParameters { get; set; }
