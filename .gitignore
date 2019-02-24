@@ -2,4 +2,6 @@ packages/
 bin/
 obj/
 .vs/
+.idea/
 *.csproj.user
+*.DotSettings.user
