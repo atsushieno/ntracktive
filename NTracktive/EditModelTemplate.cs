@@ -3,6 +3,8 @@ namespace NTracktive
 {
 	public class EditModelTemplate
 	{
+		public const string GlobalMediaPart = "0/";
+
 		static readonly Random rnd = new Random ();
 
 		static string NewHash ()
@@ -12,12 +14,14 @@ namespace NTracktive
 
 		public static EditElement CreateNewEmptyEdit ()
 		{
+			string projectIdPart = "" + (rnd.Next () % 1000000).ToString ("D06") + '/';
 			string mediaFilePart = "" + (rnd.Next () % 1000000).ToString ("D06") + '/';
 			return new EditElement {
-				AppVersion = "Waveform 9.3.2",
+				AppVersion = "Waveform 10.0.26",
+				ProjectID = projectIdPart + NewHash (),
 				CreationTime = (long)(DateTime.Now - new DateTime (1970, 1, 1)).TotalSeconds,
-				LastSignificantChange = "167803aece1", // some random string
-				MacroParameters = new MacroParametersElement { MediaId = mediaFilePart + NewHash () },
+				Transport = new TransportElement (),
+				MacroParameters = new MacroParametersElement { Id = "1001" },
 				TempoSequence = new TempoSequenceElement {
 					TimeSignatures = {
 						new TimeSigElement { Numerator = 4, Denominator = 4, StartBeat = 0 }
@@ -27,19 +31,9 @@ namespace NTracktive
 					}
 				},
 				PitchSequence = new PitchSequenceElement {},
-				ViewState = new ViewStateElement {
-					HiddenClips = "",
-					LockedClips = "",
-					CurrentSidePanel = "Tracks",
-					MidiEditorShown = true,
-					EndToEnd = true,
-					SidePanelsShown = true,
-					MixerPanelShown = false,
-					FacePlateView = new FacePlateViewElement (),
-				},
 				AutoMapXml = new AutoMapXmlElement (),
-				ClickTrack = new ClickTrackElement (),
-				Id3VorbisMetadata = new Id3VorbisMetadataElement (),
+				ClickTrack = new ClickTrackElement { Level = 0.60 },
+				Id3VorbisMetadata = new Id3VorbisMetadataElement { TrackNumber =  1, Date = DateTime.Now.ToString("yyyy") },
 				MasterVolume = new MasterVolumeElement {
 					 Filter = {
 						new FilterElement () {
@@ -77,7 +71,6 @@ namespace NTracktive
 		     			},
 					Modifiers = new ModifiersElement (),
 				},
-				MediaId = mediaFilePart + NewHash (),
 				ModifiedBy = Environment.UserName,
 				ChordTrack = new ChordTrackElement { 
 					 MediaId = mediaFilePart + NewHash (),
@@ -102,16 +95,43 @@ namespace NTracktive
 								Name = "MIDI Clip 1",
 								Offset = 0,
 								Type = "midi",
+								Colour = "#00008000",
 							},
 						},
 						Colour = "#00008000",
-						Filters = {
-						},
 						Height = 60,
 						MacroParameters = new MacroParametersElement (),
 						MediaId = mediaFilePart + NewHash (),
 						Modifiers = new ModifiersElement (),
 						Name = "track 1",
+						Filters = {
+							new FilterElement {
+								Type = "volume",
+								Id = GlobalMediaPart + NewHash (),
+								Enabled = true,
+								Volume = 0.666,
+								MacroParameters = new MacroParametersElement {
+									MediaId = mediaFilePart + NewHash (),
+								}
+							},
+
+							new FilterElement {
+								Type = "level",
+								Id = GlobalMediaPart + NewHash (),
+								Enabled = true,
+								Volume = 0.666,
+								MacroParameters = new MacroParametersElement {
+									MediaId = mediaFilePart + NewHash (),
+								}
+							},
+						},
+						OutputDevices = new OutputDevicesElement {
+							OutputDevices = {
+								new DeviceElement {
+									Name = "(default audio output)"
+								}
+							}
+						},
 					},
 				},
 			};

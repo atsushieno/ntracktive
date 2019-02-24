@@ -42,6 +42,7 @@ namespace NTracktive
 	public class EditElement
 	{
 		// attributes
+		public string ProjectID { get; set; }
 		public string AppVersion { get; set; }
 		[DataType (DataType.UnixTime)]
 		public long CreationTime { get; set; }
@@ -51,6 +52,7 @@ namespace NTracktive
 		public string LastSignificantChange { get; set; }
 
 		// elements
+		public TransportElement Transport { get; set; }
 		public MacroParametersElement MacroParameters { get; set; }
 		public TempoSequenceElement TempoSequence { get; set; }
 		public PitchSequenceElement PitchSequence { get; set; }
@@ -75,10 +77,15 @@ namespace NTracktive
 		public IList<TrackElement> Tracks { get; private set; } = new List<TrackElement> ();
 	}
 
+	public class TransportElement
+	{
+	}
+
 	public class MacroParametersElement
 	{
+		public string Id { get; set; } // new
 		[DataType (DataType.Id)]
-		public string MediaId { get; set; }
+		public string MediaId { get; set; } // old
 	}
 
 	public class TempoSequenceElement
@@ -160,7 +167,7 @@ namespace NTracktive
 	{
 		public double TrackNumber { get; set; }
 		[DataType (DataType.UnixTime)]
-		public long Date { get; set; }
+		public string Date { get; set; }
 	}
 
 	public class MasterVolumeElement
