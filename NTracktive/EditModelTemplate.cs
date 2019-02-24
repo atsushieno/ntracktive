@@ -14,6 +14,8 @@ namespace NTracktive
 
 		public static EditElement CreateNewEmptyEdit ()
 		{
+			int newIdFrom = 1001;
+			
 			string projectIdPart = "" + (rnd.Next () % 1000000).ToString ("D06") + '/';
 			string mediaFilePart = "" + (rnd.Next () % 1000000).ToString ("D06") + '/';
 			return new EditElement {
@@ -21,7 +23,7 @@ namespace NTracktive
 				ProjectID = projectIdPart + NewHash (),
 				CreationTime = (long)(DateTime.Now - new DateTime (1970, 1, 1)).TotalSeconds,
 				Transport = new TransportElement (),
-				MacroParameters = new MacroParametersElement { Id = "1001" },
+				MacroParameters = new MacroParametersElement { Id = newIdFrom++.ToString () },
 				TempoSequence = new TempoSequenceElement {
 					TimeSignatures = {
 						new TimeSigElement { Numerator = 4, Denominator = 4, StartBeat = 0 }
@@ -30,29 +32,33 @@ namespace NTracktive
 						new TempoElement { StartBeat = 0.0, Bpm = 120 },
 					}
 				},
-				PitchSequence = new PitchSequenceElement {},
+				PitchSequence = new PitchSequenceElement {
+					 Pitches = { new PitchElement { StartBeat = 0.0, Pitch = 60 } }
+				},
+				Video = new VideoElement (),
 				AutoMapXml = new AutoMapXmlElement (),
 				ClickTrack = new ClickTrackElement { Level = 0.60 },
 				Id3VorbisMetadata = new Id3VorbisMetadataElement { TrackNumber =  1, Date = DateTime.Now.ToString("yyyy") },
 				MasterVolume = new MasterVolumeElement {
-					 Filter = {
-						new FilterElement () {
+					 Plugins = {
+						new PluginElement () {
 							Type = "volume",
-							Id = "0/" + NewHash (),
+							Id = newIdFrom++.ToString (),
 							Enabled = true,
 							Volume = 0.666,
 							MacroParameters = new MacroParametersElement () {
-								MediaId = mediaFilePart + NewHash ()
+								Id = newIdFrom++.ToString (),
 							},
 			    				ModifierAssignments = new ModifierAssignmentsElement (),
 						},
 					 },
 				},
-				RackFilters = new RackFiltersElement (),
-				MasterFilters = new MasterFiltersElement (),
+				Racks = new RacksElement (),
+				MasterPlugins = new MasterPluginsElement (),
 				AuxBusNames = new AuxBusNamesElement (),
-				DevicesEx = new DevicesExElement (),
+				InputDevices = new InputDevicesElement (),
 				TrackComps = new TrackCompsElement (),
+				/*
 				ControllerMappings = new ControllerMappingsElement (),
 				MidiViewState = new MidiViewStateElement {
 					RightTime = 20.0
@@ -63,26 +69,33 @@ namespace NTracktive
 						PluginsVisible = true,
 					},
 				},
+				*/
 				TempoTrack = new TempoTrackElement {
 					Name = "Global",
-					MediaId = mediaFilePart + NewHash (),
+					Id = newIdFrom++.ToString (),
 		     			MacroParameters = new MacroParametersElement {
-		     				MediaId = mediaFilePart + NewHash ()
+		     				Id = newIdFrom++.ToString (),
 		     			},
 					Modifiers = new ModifiersElement (),
 				},
-				ModifiedBy = Environment.UserName,
-				ChordTrack = new ChordTrackElement { 
-					 MediaId = mediaFilePart + NewHash (),
+				MarkerTrack = new MarkerTrackElement {
+					Id = newIdFrom++.ToString (),
+					MacroParameters = new MacroParametersElement {
+						Id = newIdFrom++.ToString (),
 					},
-				MarkerTracks = { },
+					Modifiers = new ModifiersElement (),
+				},
+				ChordTrack = new ChordTrackElement {
+					Name = "Chords",
+					Id = newIdFrom++.ToString (),
+					},
 				Tracks = {
 					new TrackElement () {
-						Clips = {
-							new ClipElement () {
+						MidiClips = {
+							new MidiClipElement () {
 								Length = 8,
-								MediaId = mediaFilePart + NewHash (),
-								MidiSequence = new MidiSequenceElement () {
+								Id = newIdFrom++.ToString (),
+								Sequence = new SequenceElement () {
 									Events = {
 										new NoteElement () {
 											P = 60,
@@ -101,13 +114,13 @@ namespace NTracktive
 						Colour = "#00008000",
 						Height = 60,
 						MacroParameters = new MacroParametersElement (),
-						MediaId = mediaFilePart + NewHash (),
+						Id = newIdFrom++.ToString (),
 						Modifiers = new ModifiersElement (),
 						Name = "track 1",
-						Filters = {
-							new FilterElement {
+						Plugins = {
+							new PluginElement {
 								Type = "volume",
-								Id = GlobalMediaPart + NewHash (),
+								Id = newIdFrom++.ToString (),
 								Enabled = true,
 								Volume = 0.666,
 								MacroParameters = new MacroParametersElement {
@@ -115,9 +128,9 @@ namespace NTracktive
 								}
 							},
 
-							new FilterElement {
+							new PluginElement {
 								Type = "level",
-								Id = GlobalMediaPart + NewHash (),
+								Id = newIdFrom++.ToString (),
 								Enabled = true,
 								Volume = 0.666,
 								MacroParameters = new MacroParametersElement {
