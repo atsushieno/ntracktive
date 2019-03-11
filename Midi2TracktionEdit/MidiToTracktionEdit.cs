@@ -29,6 +29,9 @@ namespace Midi2TracktionEdit
 
 		public void ImportMusic (MidiImportContext context)
 		{
+			if (context.CleanupExistingTracks)
+				context.Edit.Tracks.Clear ();
+			
 			foreach (var mtrack in context.Midi.Tracks) {
 				var ttrack = new TrackElement ();
 				context.Edit.Tracks.Add (ttrack);
@@ -41,10 +44,11 @@ namespace Midi2TracktionEdit
 
 		void ImportTrack (MidiImportContext context, MidiTrack mtrack, TrackElement ttrack)
 		{
-			var clip = new MidiClipElement ();
+			ttrack.Modifiers = new ModifiersElement ();
+			var clip = new MidiClipElement {Type = "midi", Speed = 1.0 };
 			ttrack.MidiClips.Add (clip);
-			var seq = new MidiSequenceElement ();
-			clip.MidiSequence = seq;
+			var seq = new SequenceElement ();
+			clip.Sequence = seq;
 			int currentTotalTime = 0;
 			int [,] noteDeltaTimes = new int [16, 128];
 			NoteElement [,] notes = new NoteElement [16,128];
@@ -60,8 +64,7 @@ namespace Midi2TracktionEdit
 						if (l == 0)
 							Console.Error.WriteLine( ($"!!! Zero-length note: at {ToTracktionBarSpec(context, currentTotalTime)}, value: {msg.Event.Value}"));
 						else {
-							noteToOff.L = ToTracktionBarSpec (context,
-								currentTotalTime - l);
+							noteToOff.L = ToTracktionBarSpec (context, l);
 							noteToOff.C = msg.Event.Lsb;
 						}
 					}
@@ -79,7 +82,8 @@ namespace Midi2TracktionEdit
 					seq.Events.Add (noteOn);
 					break;
 				case MidiEvent.CAf:
-					throw new NotImplementedException ();
+					seq.Events.Add (new ControlElement () { B = tTime, Type = ControlType.CAf, Val = msg.Event.Lsb * 128 });
+					break;
 				case MidiEvent.CC:
 					seq.Events.Add (new ControlElement () { B = tTime, Type = msg.Event.Msb, Val = msg.Event.Lsb * 128 });
 					break;
@@ -87,7 +91,8 @@ namespace Midi2TracktionEdit
 					seq.Events.Add (new ControlElement () { B = tTime, Type = ControlType.ProgramChange, Val = msg.Event.Msb * 128 }); // lol
 					break;
 				case MidiEvent.PAf:
-					throw new NotImplementedException ();
+					seq.Events.Add (new ControlElement () { B = tTime, Type = ControlType.PAf, Val = msg.Event.Lsb * 128, Metadata = msg.Event.Msb });
+					break;
 				case MidiEvent.Pitch:
 					seq.Events.Add (new ControlElement () { B = tTime, Type = ControlType.PitchBend, Val = msg.Event.Msb * 128 + msg.Event.Lsb });
 					break;
@@ -95,6 +100,11 @@ namespace Midi2TracktionEdit
 					break;
 				}
 			}
+
+			clip.Start = 0;
+			var e = seq.Events.OfType<AbstractMidiEventElement> ().LastOrDefault ();
+			if (e != null)
+				clip.Length = e.B + 1.0;
 		}
 	}
 }

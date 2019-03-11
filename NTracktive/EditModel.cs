@@ -33,7 +33,9 @@ namespace NTracktive
 	public static class ControlType
 	{
 		public const int ProgramChange = 0x1000 + 1;
+		public const int PAf = 0x1000 + 4;
 		public const int PitchBend = 0x1000 + 5;
+		public const int CAf = 0x1000 + 7;
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -299,10 +301,10 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public abstract class AbstractViewElement
 	{
-		public double Width { get; set; }
-		public double Height { get; set; }
-		public double VerticalOffset { get; set; }
-		public double VisibleProportion { get; set; }
+		public double? Width { get; set; }
+		public double? Height { get; set; }
+		public double? VerticalOffset { get; set; }
+		public double? VisibleProportion { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -354,9 +356,9 @@ namespace NTracktive
 		[DataType (DataType.Base64Binary)]
 		public string Base64_Layout { get; set; }
 		public double Volume { get; set; }
-		public double WindowX { get; set; }
-		public double WindowY { get; set; }
-		public bool WindowLocked { get; set; }
+		public double? WindowX { get; set; }
+		public double? WindowY { get; set; }
+		public bool? WindowLocked { get; set; }
 
 		// elements
 		public MacroParametersElement MacroParameters { get; set; }
@@ -393,11 +395,11 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public class TrackElement : AbstractTrackElement
 	{
-		public double MidiVProp { get; set; }
-		public double MidiVOffset { get; set; }
+		public double? MidiVProp { get; set; }
+		public double? MidiVOffset { get; set; }
 		public string Colour { get; set; }
-		public bool Solo { get; set; }
-		public bool Mute { get; set; }
+		public bool? Solo { get; set; }
+		public bool? Mute { get; set; }
 
 		// new
 		public IList<MidiClipElement> MidiClips { get; private set; } = new List<MidiClipElement> ();
@@ -477,15 +479,16 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public abstract class AbstractMidiEventElement
 	{
+		[DataType (DataType.Length)]
+		public double B { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
 	public class ControlElement : AbstractMidiEventElement
 	{
-		[DataType (DataType.Length)]
-		public double B { get; set; }
 		public int Type { get; set; }
 		public int Val { get; set; }
+		public int? Metadata { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -493,14 +496,12 @@ namespace NTracktive
 	{
 		public int P { get; set; }
 		[DataType (DataType.Length)]
-		public double B { get; set; }
-		[DataType (DataType.Length)]
 		public double L { get; set; }
 		public int V { get; set; }
 		public int C { get; set; }
-		public double InitialTimbre { get; set; }
-		public double InitialPressure { get; set; }
-		public double InitialPitchbend { get; set; }
+		public double? InitialTimbre { get; set; }
+		public double? InitialPressure { get; set; }
+		public double? InitialPitchbend { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]

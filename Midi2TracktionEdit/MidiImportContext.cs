@@ -20,6 +20,8 @@ namespace Midi2TracktionEdit
 			Edit = edit;
 		}
 
+		public bool CleanupExistingTracks { get; set; } = true;
+
 		MidiMusic midi;
 		EditElement edit;
 
