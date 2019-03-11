@@ -30,6 +30,12 @@ namespace NTracktive
 		Base64Binary
 	}
 
+	public static class ControlType
+	{
+		public const int ProgramChange = 0x1000 + 1;
+		public const int PitchBend = 0x1000 + 5;
+	}
+
 	[StructLayout (LayoutKind.Sequential)]
 	public class DataTypeAttribute : Attribute
 	{
