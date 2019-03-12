@@ -65,6 +65,7 @@ namespace Midi2TracktionEdit
 			int [,] noteDeltaTimes = new int [16, 128];
 			NoteElement [,] notes = new NoteElement [16,128];
 			int timeSigNumerator = 4, timeSigDenominator = 4;
+			double currentBpm = 120.0;
 			
 			foreach (var msg in mtrack.Messages) {
 				currentTotalTime += msg.DeltaTime;
@@ -113,11 +114,12 @@ namespace Midi2TracktionEdit
 					if (msg.Event.EventType == MidiEvent.Meta) {
 						switch (msg.Event.MetaType) {
 						//case MidiMetaType.Marker:
-						case MidiMetaType.Tempo:							
+						case MidiMetaType.Tempo:
+							currentBpm = ToBpm (msg.Event.Data);
 							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
 								StartBeat = ToTracktionBarSpec (context,
 									currentTotalTime),
-								Curve = 1.0, Bpm = ToBpm (msg.Event.Data)
+								Curve = 1.0, Bpm = currentBpm
 							});
 							break;
 						case MidiMetaType.TimeSignature:
@@ -126,6 +128,12 @@ namespace Midi2TracktionEdit
 							timeSigDenominator = (int) Math.Pow (2, timeSig [1]);
 							context.Edit.TempoSequence.TimeSignatures.Add (
 								new TimeSigElement { StartBeat = ToTracktionBarSpec (context, currentTotalTime), Numerator= timeSigNumerator, Denominator = timeSigDenominator });
+							// Tracktion engine has a problem that its tempo calculation goes fubar when timesig denomitator becomes non-4 value.
+							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
+								StartBeat = ToTracktionBarSpec (context,
+									currentTotalTime),
+								Curve = 1.0, Bpm = currentBpm / (timeSigDenominator / 4)
+							});
 							break;
 						}
 					}
