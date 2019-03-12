@@ -33,7 +33,7 @@ namespace Midi2TracktionEdit
 				break;
 			}
 
-			var m2t = new MidiToTracktionEdit ();
+			var m2t = new MidiToTracktionEditConverter ();
 			m2t.ImportMusic (ctx);
 			new EditModelWriter ().Write (Console.Out, ctx.Edit);
 		}

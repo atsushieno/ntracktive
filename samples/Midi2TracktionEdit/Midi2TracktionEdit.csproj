@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="CommandArgumentContext.cs" />
     <Compile Include="MidiImportContext.cs" />
-    <Compile Include="MidiToTracktionEdit.cs" />
+    <Compile Include="MidiToTracktionEditConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

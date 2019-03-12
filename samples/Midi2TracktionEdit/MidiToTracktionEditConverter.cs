@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Xml;
 using NTracktive;
 using Commons.Music.Midi;
@@ -9,8 +10,12 @@ using CoreMidi;
 
 namespace Midi2TracktionEdit
 {
-	public class MidiToTracktionEdit
+	public class MidiToTracktionEditConverter
 	{
+		// state
+		bool consumed;
+		MidiImportContext context;
+		
 		public void Process (string [] args)
 		{
 			var argumentContext = GetContextFromCommandArguments (args);
@@ -29,32 +34,43 @@ namespace Midi2TracktionEdit
 
 		public void ImportMusic (MidiImportContext context)
 		{
-			if (context.CleanupExistingTracks) {
-				context.Edit.Tracks.Clear ();
-				context.Edit.TempoSequence = null;
-			}
-			if (context.Edit.TempoSequence == null)
-				context.Edit.TempoSequence = new TempoSequenceElement ();
-
-			foreach (var mtrack in context.Midi.Tracks) {
-				var ttrack = new TrackElement ();
-				context.Edit.Tracks.Add (ttrack);
-				ImportTrack (context, mtrack, ttrack);				
-				if (!ttrack.MidiClips.Any () && !ttrack.Clips.Any())
-					context.Edit.Tracks.Remove (ttrack);
-				else {
-					ttrack.Plugins.Add (new PluginElement { Type = "volume", Volume = 0.8, Enabled = true });
-					ttrack.Plugins.Add (new PluginElement { Type = "level", Enabled = true });
-					ttrack.OutputDevices = new OutputDevicesElement ();
-					ttrack.OutputDevices.OutputDevices.Add (new DeviceElement { Name = "(default audio output)" });
+			if (consumed)
+				throw new InvalidOperationException ($"This instance is already used. Create another instance of {this.GetType ()} if you want to process more.");
+			this.context = context;
+			try {
+				if (context.CleanupExistingTracks) {
+					context.Edit.Tracks.Clear ();
+					context.Edit.TempoSequence = null;
 				}
+
+				if (context.Edit.TempoSequence == null)
+					context.Edit.TempoSequence = new TempoSequenceElement ();
+
+				foreach (var mtrack in context.Midi.Tracks) {
+					var trackName = PopulateTrackName (mtrack);
+					var ttrack = new TrackElement () {Name = trackName};
+					context.Edit.Tracks.Add (ttrack);
+					ImportTrack (mtrack, ttrack);
+					if (!ttrack.MidiClips.Any () && !ttrack.Clips.Any ())
+						context.Edit.Tracks.Remove (ttrack);
+					else {
+						ttrack.Plugins.Add (new PluginElement
+							{Type = "volume", Volume = 0.8, Enabled = true});
+						ttrack.Plugins.Add (new PluginElement {Type = "level", Enabled = true});
+						ttrack.OutputDevices = new OutputDevicesElement ();
+						ttrack.OutputDevices.OutputDevices.Add (new DeviceElement
+							{Name = "(default audio output)"});
+					}
+				}
+			} finally {
+				consumed = true;
 			}
 		}
 
-		double ToTracktionBarSpec (MidiImportContext context, double deltaTime) =>
+		double ToTracktionBarSpec (double deltaTime) =>
 			deltaTime / (double) context.Midi.DeltaTimeSpec;
 
-		void ImportTrack (MidiImportContext context, MidiTrack mtrack, TrackElement ttrack)
+		void ImportTrack (MidiTrack mtrack, TrackElement ttrack)
 		{
 			ttrack.Modifiers = new ModifiersElement ();
 			var clip = new MidiClipElement {Type = "midi", Speed = 1.0 };
@@ -69,16 +85,16 @@ namespace Midi2TracktionEdit
 			
 			foreach (var msg in mtrack.Messages) {
 				currentTotalTime += msg.DeltaTime;
-				var tTime = ToTracktionBarSpec (context, currentTotalTime);
+				var tTime = ToTracktionBarSpec (currentTotalTime);
 				switch (msg.Event.EventType) {
 				case MidiEvent.NoteOff:
 					var noteToOff = notes [msg.Event.Channel, msg.Event.Msb];
 					if (noteToOff != null) {
 						var l = currentTotalTime - noteDeltaTimes [msg.Event.Channel, msg.Event.Msb];
 						if (l == 0)
-							Console.Error.WriteLine( ($"!!! Zero-length note: at {ToTracktionBarSpec(context, currentTotalTime)}, value: {msg.Event.Value}"));
+							Console.Error.WriteLine( ($"!!! Zero-length note: at {ToTracktionBarSpec(currentTotalTime)}, value: {msg.Event.Value}"));
 						else {
-							noteToOff.L = ToTracktionBarSpec (context, l);
+							noteToOff.L = ToTracktionBarSpec (l);
 							noteToOff.C = msg.Event.Lsb;
 						}
 					}
@@ -90,7 +106,7 @@ namespace Midi2TracktionEdit
 						goto case MidiEvent.NoteOff;
 					var noteOn = new NoteElement {B = tTime, P = msg.Event.Msb, V = msg.Event.Lsb};
 					if (notes [msg.Event.Channel, msg.Event.Msb] != null)
-						Console.Error.WriteLine ($"!!! Overlapped note: at {ToTracktionBarSpec(context, currentTotalTime)}, value: {msg.Event.Value.ToString("X08")}");
+						Console.Error.WriteLine ($"!!! Overlapped note: at {ToTracktionBarSpec(currentTotalTime)}, value: {msg.Event.Value.ToString("X08")}");
 					notes [msg.Event.Channel, msg.Event.Msb] = noteOn;
 					noteDeltaTimes [msg.Event.Channel, msg.Event.Msb] = currentTotalTime;
 					seq.Events.Add (noteOn);
@@ -117,8 +133,7 @@ namespace Midi2TracktionEdit
 						case MidiMetaType.Tempo:
 							currentBpm = ToBpm (msg.Event.Data);
 							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
-								StartBeat = ToTracktionBarSpec (context,
-									currentTotalTime),
+								StartBeat = ToTracktionBarSpec (currentTotalTime),
 								Curve = 1.0, Bpm = currentBpm
 							});
 							break;
@@ -127,11 +142,10 @@ namespace Midi2TracktionEdit
 							timeSigNumerator = timeSig [0];
 							timeSigDenominator = (int) Math.Pow (2, timeSig [1]);
 							context.Edit.TempoSequence.TimeSignatures.Add (
-								new TimeSigElement { StartBeat = ToTracktionBarSpec (context, currentTotalTime), Numerator= timeSigNumerator, Denominator = timeSigDenominator });
+								new TimeSigElement { StartBeat = ToTracktionBarSpec (currentTotalTime), Numerator= timeSigNumerator, Denominator = timeSigDenominator });
 							// Tracktion engine has a problem that its tempo calculation goes fubar when timesig denomitator becomes non-4 value.
 							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
-								StartBeat = ToTracktionBarSpec (context,
-									currentTotalTime),
+								StartBeat = ToTracktionBarSpec (currentTotalTime),
 								Curve = 1.0, Bpm = currentBpm / (timeSigDenominator / 4)
 							});
 							break;
@@ -153,6 +167,16 @@ namespace Midi2TracktionEdit
 		{
 			var t = (data [0] << 16) + (data [1] << 8) + data [2];
 			return 60000000.0 / t;
+		}
+
+		string PopulateTrackName (MidiTrack track)
+		{
+			var trackNameData = track.Messages.Select (m => m.Event).FirstOrDefault (e =>
+				e.EventType == MidiEvent.Meta && e.MetaType == MidiMetaType.TrackName).Data;
+			var trackName = trackNameData != null ? Encoding.UTF8.GetString (trackNameData) : null;
+			int firstProgramChangeValue = track.Messages.Select (m => m.Event).FirstOrDefault (e => e.EventType == MidiEvent.Program).Msb;
+			trackName = (0 <= firstProgramChangeValue && firstProgramChangeValue < GeneralMidi.InstrumentNames.Length) ? GeneralMidi.InstrumentNames [firstProgramChangeValue] : null;
+			return trackName;
 		}
 	}
 }

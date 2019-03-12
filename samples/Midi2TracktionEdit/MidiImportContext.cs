@@ -6,6 +6,14 @@ using NTracktive;
 
 namespace Midi2TracktionEdit
 {
+	public enum MarkerImportStrategy
+	{
+		Default,
+		None,
+		Global,
+		PerTrack,
+	}
+		
 	public class MidiImportContext
 	{
 		public MidiImportContext (CommandArgumentContext commandArgumentContext)
@@ -21,6 +29,8 @@ namespace Midi2TracktionEdit
 		}
 
 		public bool CleanupExistingTracks { get; set; } = true;
+		
+		public MarkerImportStrategy MarkerImportStrategy { get; set; }
 
 		MidiMusic midi;
 		EditElement edit;
