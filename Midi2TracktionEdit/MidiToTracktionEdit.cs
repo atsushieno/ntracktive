@@ -113,7 +113,7 @@ namespace Midi2TracktionEdit
 					if (msg.Event.EventType == MidiEvent.Meta) {
 						switch (msg.Event.MetaType) {
 						//case MidiMetaType.Marker:
-						case MidiMetaType.Tempo:
+						case MidiMetaType.Tempo:							
 							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
 								StartBeat = ToTracktionBarSpec (context,
 									currentTotalTime),
@@ -125,7 +125,7 @@ namespace Midi2TracktionEdit
 							timeSigNumerator = timeSig [0];
 							timeSigDenominator = (int) Math.Pow (2, timeSig [1]);
 							context.Edit.TempoSequence.TimeSignatures.Add (
-								new TimeSigElement { Numerator= timeSigNumerator, Denominator = timeSigDenominator });
+								new TimeSigElement { StartBeat = ToTracktionBarSpec (context, currentTotalTime), Numerator= timeSigNumerator, Denominator = timeSigDenominator });
 							break;
 						}
 					}
@@ -143,8 +143,8 @@ namespace Midi2TracktionEdit
 
 		double ToBpm (byte [] data)
 		{
-			var t = (data [0] << 14) + (data [1] << 7) + data [2];
-			return t / 1000.0;
+			var t = (data [0] << 16) + (data [1] << 8) + data [2];
+			return 60000000.0 / t;
 		}
 	}
 }
