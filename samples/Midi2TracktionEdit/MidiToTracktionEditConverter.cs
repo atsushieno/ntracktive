@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,6 +16,7 @@ namespace Midi2TracktionEdit
 		// state
 		bool consumed;
 		MidiImportContext context;
+		MidiMessage [] global_markers = new MidiMessage [] { new MidiMessage (int.MaxValue, default (MidiEvent)), };
 		
 		public void Process (string [] args)
 		{
@@ -42,9 +44,25 @@ namespace Midi2TracktionEdit
 					context.Edit.Tracks.Clear ();
 					context.Edit.TempoSequence = null;
 				}
-
 				if (context.Edit.TempoSequence == null)
 					context.Edit.TempoSequence = new TempoSequenceElement ();
+
+				switch (context.MarkerImportStrategy) {
+				case MarkerImportStrategy.Global:
+					var markers = new List<MidiMessage> ();
+					int t = 0;
+					foreach (var m in SmfTrackMerger.Merge (context.Midi).Tracks [0].Messages) {
+						t += m.DeltaTime;
+						if (m.Event.EventType == MidiEvent.Meta &&
+						    m.Event.MetaType == MidiMetaType.Marker)
+							markers.Add (new MidiMessage (t,
+								new MidiEvent (MidiEvent.Meta, 0, 0, m.Event.Data)));
+					}
+
+					global_markers = markers.ToArray ();
+				Console.Error.WriteLine("GLOBAL MARKERS:" + global_markers.Length);
+					break;
+				}
 
 				foreach (var mtrack in context.Midi.Tracks) {
 					var trackName = PopulateTrackName (mtrack);
@@ -72,20 +90,72 @@ namespace Midi2TracktionEdit
 
 		void ImportTrack (MidiTrack mtrack, TrackElement ttrack)
 		{
-			ttrack.Modifiers = new ModifiersElement ();
-			var clip = new MidiClipElement {Type = "midi", Speed = 1.0 };
-			ttrack.MidiClips.Add (clip);
-			var seq = new SequenceElement ();
-			clip.Sequence = seq;
+			using (var globalMarkersEnumerator =
+				((IEnumerable<MidiMessage>) global_markers).GetEnumerator ())
+				ImportTrack (mtrack, ttrack, globalMarkersEnumerator);
+		}
+
+		void ImportTrack (MidiTrack mtrack, TrackElement ttrack, IEnumerator<MidiMessage> globalMarkersEnumerator)
+		{
+			double currentClipStart = 0;
+			// they are explicitly assigned due to C# limitation of initialization check...
+			MidiMessage nextGlobalMarker = default (MidiMessage);
+			MidiClipElement clip = null; 
+			SequenceElement seq = null;
 			int currentTotalTime = 0;
+
+			Action terminateClip = () => {
+				if (clip == null)
+					return;
+				clip.PatternGenerator = new PatternGeneratorElement ();
+				clip.PatternGenerator.Progression = new ProgressionElement ();
+				var e = seq.Events.OfType<AbstractMidiEventElement> ().LastOrDefault ();
+				if (e != null) {
+					var note = e as NoteElement;
+					var extend = note != null ? note.L : 0;
+					clip.Length = e.B + extend;
+				}
+				else if (!seq.Events.Any ())
+					ttrack.MidiClips.Remove (clip);				
+			};
+			Action proceedToNextGlobalMarker = () => {
+				if (globalMarkersEnumerator.MoveNext ())
+					nextGlobalMarker = globalMarkersEnumerator.Current;
+				else
+					nextGlobalMarker = new MidiMessage (int.MaxValue, default (MidiEvent));
+			};
+			
+			Action nextClip = () => {
+				terminateClip ();
+				currentClipStart = ToTracktionBarSpec (nextGlobalMarker.DeltaTime);
+				string name = nextGlobalMarker.Event.Data == null
+					? null
+					: Encoding.UTF8.GetString (nextGlobalMarker.Event.Data);
+				clip = new MidiClipElement {Type = "midi", Speed = 1.0, Start = currentClipStart, Name = name};
+				ttrack.MidiClips.Add (clip);
+				seq = new SequenceElement ();
+				clip.Sequence = seq;
+				
+				proceedToNextGlobalMarker ();
+			};
+			nextClip ();
+
+			ttrack.Modifiers = new ModifiersElement ();
 			int [,] noteDeltaTimes = new int [16, 128];
 			NoteElement [,] notes = new NoteElement [16,128];
 			int timeSigNumerator = 4, timeSigDenominator = 4;
 			double currentBpm = 120.0;
-			
+
 			foreach (var msg in mtrack.Messages) {
 				currentTotalTime += msg.DeltaTime;
-				var tTime = ToTracktionBarSpec (currentTotalTime);
+				while (true) {
+					if (nextGlobalMarker.DeltaTime <= currentTotalTime)
+						nextClip ();
+					else
+						break;
+				}
+
+				var tTime = ToTracktionBarSpec (currentTotalTime) - currentClipStart;
 				switch (msg.Event.EventType) {
 				case MidiEvent.NoteOff:
 					var noteToOff = notes [msg.Event.Channel, msg.Event.Msb];
@@ -129,7 +199,13 @@ namespace Midi2TracktionEdit
 				default: // sysex or meta
 					if (msg.Event.EventType == MidiEvent.Meta) {
 						switch (msg.Event.MetaType) {
-						//case MidiMetaType.Marker:
+						case MidiMetaType.Marker:
+							switch (context.MarkerImportStrategy) {
+							case MarkerImportStrategy.PerTrack:
+								// TODO: implement
+								break;
+							}
+							break;
 						case MidiMetaType.Tempo:
 							currentBpm = ToBpm (msg.Event.Data);
 							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
@@ -155,12 +231,8 @@ namespace Midi2TracktionEdit
 				}
 			}
 
-			clip.Start = 0;
-			var e = seq.Events.OfType<AbstractMidiEventElement> ().LastOrDefault ();
-			if (e != null)
-				clip.Length = e.B;
-			else if (!seq.Events.Any ())
-				ttrack.MidiClips.Remove (clip);
+			terminateClip ();
+
 		}
 
 		double ToBpm (byte [] data)
