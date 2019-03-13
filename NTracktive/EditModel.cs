@@ -94,10 +94,7 @@ namespace NTracktive
 		public MidiViewStateElement MidiViewState { get; set; }
 		public ArrangeViewElement ArrangeView { get; set; }
 
-		public TempoTrackElement TempoTrack { get; set; }
-		public MarkerTrackElement MarkerTrack { get; set; }
-		public ChordTrackElement ChordTrack { get; set; }
-		public IList<TrackElement> Tracks { get; private set; } = new List<TrackElement> ();
+		public IList<AbstractTrackElement> Tracks { get; private set; } = new List<AbstractTrackElement> ();
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -336,6 +333,30 @@ namespace NTracktive
 		public ModifiersElement Modifiers { get; set; }
 	}
 
+	public abstract class AbstractContentTrackElement : AbstractTrackElement
+	{
+		public IList<AutomationTrackElement> AutomationTracks { get; private set; } = new List<AutomationTrackElement> ();
+		// new
+		public IList<PluginElement> Plugins { get; private set; } = new List<PluginElement> ();
+		// old
+		public IList<FilterElement> Filters { get; private set; } = new List<FilterElement> ();		
+	}
+
+	public class AutomationTrackElement : AbstractTrackElement
+	{
+		public string Colour { get; set; }
+		public int? CurrentAutoParamPluginID { get; set; }
+		public int? CurrentAutoParamTag { get; set; }
+	}
+
+	// used by both folder track and submix track.
+	public class FolderTrackElement : AbstractContentTrackElement
+	{
+		public bool? Expanded { get; set; }
+		
+		public IList<AbstractTrackElement> Tracks { get; set; } = new List<AbstractTrackElement> ();
+	}
+
 	[StructLayout (LayoutKind.Sequential)]
 	public class TempoTrackElement : AbstractTrackElement
 	{
@@ -438,7 +459,7 @@ namespace NTracktive
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
-	public class TrackElement : AbstractTrackElement
+	public class TrackElement : AbstractContentTrackElement
 	{
 		public double? MidiVProp { get; set; }
 		public double? MidiVOffset { get; set; }
@@ -447,11 +468,12 @@ namespace NTracktive
 		public bool? Mute { get; set; }
 
 		public IList<ClipElementBase> Clips { get; private set; } = new List<ClipElementBase> ();
-		// new
-		public IList<PluginElement> Plugins { get; private set; } = new List<PluginElement> ();
-		// old
-		public IList<FilterElement> Filters { get; private set; } = new List<FilterElement> ();
 		public OutputDevicesElement OutputDevices { get; set; }
+		public TrackSnapshotsElement TrackSnapshots { get; set; }
+	}
+
+	public class TrackSnapshotsElement
+	{
 	}
 
 	// old

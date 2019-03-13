@@ -70,26 +70,27 @@ namespace NTracktive
 					},
 				},
 				*/
-				TempoTrack = new TempoTrackElement {
-					Name = "Global",
-					Id = newIdFrom++.ToString (),
-		     			MacroParameters = new MacroParametersElement {
-		     				Id = newIdFrom++.ToString (),
-		     			},
-					Modifiers = new ModifiersElement (),
-				},
-				MarkerTrack = new MarkerTrackElement {
-					Id = newIdFrom++.ToString (),
-					MacroParameters = new MacroParametersElement {
+				Tracks = {
+					new TempoTrackElement {
+						Name = "Global",
+						Id = newIdFrom++.ToString (),
+						MacroParameters = new MacroParametersElement {
+							Id = newIdFrom++.ToString (),
+						},
+						Modifiers = new ModifiersElement (),
+					},
+					new MarkerTrackElement {
+						Id = newIdFrom++.ToString (),
+						MacroParameters = new MacroParametersElement {
+							Id = newIdFrom++.ToString (),
+						},
+						Modifiers = new ModifiersElement (),
+					},
+					new ChordTrackElement {
+						Name = "Chords",
 						Id = newIdFrom++.ToString (),
 					},
-					Modifiers = new ModifiersElement (),
-				},
-				ChordTrack = new ChordTrackElement {
-					Name = "Chords",
-					Id = newIdFrom++.ToString (),
-					},
-				Tracks = {
+				
 					new TrackElement () {
 						Clips = {
 							new MidiClipElement () {
