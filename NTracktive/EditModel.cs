@@ -89,6 +89,8 @@ namespace NTracktive
 		public TrackCompsElement TrackComps { get; set; }
 		public AraDocumentElement AraDocument { get; set; }
 		public ControllerMappingsElement ControllerMappings { get; set; }
+		public EditMixGroupsElement EditMixGroups { get; set; }
+		public AudioEditingElement AudioEditing { get; set; }
 		public MidiViewStateElement MidiViewState { get; set; }
 		public ArrangeViewElement ArrangeView { get; set; }
 
@@ -101,6 +103,10 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public class TransportElement
 	{
+		public double? Position { get; set; }
+		public double? ScrubInterval { get; set; }
+		public double? LoopPoint1 { get; set; }
+		public double? LoopPoint2 { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -163,6 +169,8 @@ namespace NTracktive
 	public class ViewStateElement
 	{
 		// attributes
+		public bool MinimalTransportBar { get; set; }
+		public bool ScrollWhenPlaying { get; set; }
 		public string HiddenClips { get; set; }
 		public string LockedClips { get; set; }
 		public string EnabledTrackTags { get; set; }
@@ -186,6 +194,12 @@ namespace NTracktive
 		public double MidiEditorHeight { get; set; }
 		// elements
 		public FacePlateViewElement FacePlateView { get; set; }
+		public TrackEditorsElement TrackEditors { get; set; }
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
+	public class TrackEditorsElement
+	{
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -401,10 +415,7 @@ namespace NTracktive
 		public bool? Solo { get; set; }
 		public bool? Mute { get; set; }
 
-		// new
-		public IList<MidiClipElement> MidiClips { get; private set; } = new List<MidiClipElement> ();
-		// old
-		public IList<ClipElement> Clips { get; private set; } = new List<ClipElement> ();
+		public IList<ClipElementBase> Clips { get; private set; } = new List<ClipElementBase> ();
 		// new
 		public IList<PluginElement> Plugins { get; private set; } = new List<PluginElement> ();
 		// old
@@ -412,23 +423,39 @@ namespace NTracktive
 		public OutputDevicesElement OutputDevices { get; set; }
 	}
 
+	// old
 	[StructLayout (LayoutKind.Sequential)]
 	public class ClipElement : MidiClipElementBase
 	{
+		public MidiSequenceElement MidiSequence { get; set; }
 	}
 
+	// new
 	[StructLayout (LayoutKind.Sequential)]
 	public class MidiClipElement : MidiClipElementBase
 	{
+		public SequenceElement Sequence { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
-	public class MidiClipElementBase
+	public abstract class MidiClipElementBase : ClipElementBase
+	{
+		public string Type { get; set; }
+		public double? Sync { get; set; }
+		public bool ShowingTakes { get; set; }
+		public bool MpeMode { get; set; }
+		public double VolDb { get; set; }
+		public double OriginalLength { get; set; }
+		public bool SendProgramChange { get; set; }
+		public bool SendBankChange { get; set; }
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
+	public abstract class ClipElementBase
 	{
 		// attributes
 		public int Channel { get; set; }
 		public string Name { get; set; }
-		public string Type { get; set; }
 		[DataType (DataType.Length)]
 		public double Start { get; set; }
 		[DataType (DataType.Length)]
@@ -437,7 +464,6 @@ namespace NTracktive
 		public double Offset { get; set; }
 		[DataType (DataType.Id)]
 		public string Source { get; set; }
-		public double Sync { get; set; }
 		// new
 		public string Id { get; set; }
 		// old
@@ -446,15 +472,54 @@ namespace NTracktive
 		public string Colour { get; set; }
 		public int CurrentTake { get; set; }
 		public double Speed { get; set; }
+		public bool Mute { get; set; }
+		public double? LinkID { get; set; }
+		public double? LoopStartBeats { get; set; }
+		public double? LoopLengthBeats { get; set; }
 
 		// elements
-		// new
-		public SequenceElement Sequence { get; set; }
-		// old
-		public MidiSequenceElement MidiSequence { get; set; }
 		public QuantisationElement Quantisation { get; set; }
 		public GrooveElement Groove { get; set; }
 		public PatternGeneratorElement PatternGenerator { get; set; }
+	}
+
+	public class StepClipElement : ClipElementBase
+	{
+		public double Sequence { get; set; }
+		
+		public ChannelsElement Channels { get; set; }
+		public PatternsElement Patterns { get; set; }
+	}
+
+	public class ChannelsElement
+	{
+		public IList<ChannelElement> Channels { get; set; } = new List<ChannelElement> ();
+	}
+
+	// HACK: <CHANNEL> can appear in both <CHANNELS> and <PATTERN>.
+	// This library does not provide "decent" way to distinguish serialization names, so define both members in this type.
+	public class ChannelElement
+	{
+		// for ChannelsElement
+		public int Channel { get; set; }
+		public int Note { get; set; }
+		public int Velocity { get; set; }
+		public string Name { get; set; }
+		// for PatternElement
+		public string Pattern { get; set; } // "1000101010001000"...
+		public string Velocities { get; set; }
+	}
+
+	public class PatternsElement
+	{
+		public IList<PatternElement> Patterns { get; set; } = new List<PatternElement> ();
+	}
+
+	public class PatternElement
+	{
+		public int NumNotes { get; set; }
+		public double NoteLength { get; set; }
+		public IList<ChannelElement> Channels { get; set; } = new List<ChannelElement> ();
 	}
 
 	// new
@@ -516,11 +581,14 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public class QuantisationElement
 	{
+		public string Type { get; set; }
+		public double? Amount { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
 	public class GrooveElement
 	{
+		public string Current { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -576,5 +644,15 @@ namespace NTracktive
 		public bool ModifiersVisible { get; set; }
 		[DataType (DataType.BooleanInt)]
 		public bool PluginsVisible { get; set; }
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
+	public class EditMixGroupsElement
+	{
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
+	public class AudioEditingElement
+	{
 	}
 }

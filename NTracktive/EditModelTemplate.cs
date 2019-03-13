@@ -91,7 +91,7 @@ namespace NTracktive
 					},
 				Tracks = {
 					new TrackElement () {
-						MidiClips = {
+						Clips = {
 							new MidiClipElement () {
 								Length = 8,
 								Id = newIdFrom++.ToString (),

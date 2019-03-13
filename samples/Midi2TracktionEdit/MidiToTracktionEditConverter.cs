@@ -70,7 +70,7 @@ namespace Midi2TracktionEdit
 					var ttrack = new TrackElement () {Name = trackName};
 					context.Edit.Tracks.Add (ttrack);
 					ImportTrack (mtrack, ttrack);
-					if (!ttrack.MidiClips.Any () && !ttrack.Clips.Any ())
+					if (!ttrack.Clips.Any () && !ttrack.Clips.Any ())
 						context.Edit.Tracks.Remove (ttrack);
 					else {
 						ttrack.Plugins.Add (new PluginElement
@@ -117,7 +117,7 @@ namespace Midi2TracktionEdit
 					clip.Length = e.B + extend;
 				}
 				else if (!seq.Events.Any ())
-					ttrack.MidiClips.Remove (clip);				
+					ttrack.Clips.Remove (clip);				
 			};
 			Action proceedToNextGlobalMarker = () => {
 				if (globalMarkersEnumerator.MoveNext ())
@@ -133,7 +133,7 @@ namespace Midi2TracktionEdit
 					? null
 					: Encoding.UTF8.GetString (nextGlobalMarker.Event.Data);
 				clip = new MidiClipElement {Type = "midi", Speed = 1.0, Start = currentClipStart, Name = name};
-				ttrack.MidiClips.Add (clip);
+				ttrack.Clips.Add (clip);
 				seq = new SequenceElement ();
 				clip.Sequence = seq;
 				

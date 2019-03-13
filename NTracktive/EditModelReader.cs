@@ -37,7 +37,15 @@ namespace NTracktive
 					throw new XmlException ("Missing DataType attribute on byte array.", null, li.LineNumber, li.LinePosition);
 			}
 
-			switch (Type.GetTypeCode (pi.PropertyType)) {
+			var nonNullableType = pi.PropertyType;
+			if (pi.PropertyType.IsGenericType &&
+			    pi.PropertyType.GetGenericTypeDefinition () == typeof (Nullable<>)) {
+				if (string.IsNullOrEmpty (value))
+					return null;
+				nonNullableType = pi.PropertyType.GenericTypeArguments [0];
+			}
+
+			switch (Type.GetTypeCode (nonNullableType)) {
 			case TypeCode.String:
 				return value;
 			case TypeCode.Boolean:
