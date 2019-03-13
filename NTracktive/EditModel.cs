@@ -205,6 +205,7 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public class FacePlateViewElement
 	{
+		public bool? EditModeActive { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -373,6 +374,7 @@ namespace NTracktive
 		public double? WindowX { get; set; }
 		public double? WindowY { get; set; }
 		public bool? WindowLocked { get; set; }
+		public bool? RemapOnTempoChange { get; set; }
 
 		// elements
 		public MacroParametersElement MacroParameters { get; set; }
@@ -399,6 +401,35 @@ namespace NTracktive
 	public class FacePlateElement : AbstractViewElement
 	{
 		public bool AutoSize { get; set; }
+		public bool? AssignEnabled { get; set; }
+
+		public BackgroundElement Background { get; set; }
+		public IList<FacePlateContentBase> Contents { get; set; } = new List<FacePlateContentBase> ();
+	}
+
+	public abstract class FacePlateContentBase
+	{
+		// HACK: it should be IList<int>
+		public string Bounds { get; set; }
+		// HACK: it should be IList<int>
+		public string ParameterIDs { get; set; }
+	}
+
+	public class BackgroundElement
+	{
+		public double ImageAlpha { get; set; }
+	}
+
+	public class ParameterElement : FacePlateContentBase
+	{
+	}
+
+	public class ButtonElement : FacePlateContentBase
+	{
+	}
+
+	public class XYElement : FacePlateContentBase
+	{
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -506,8 +537,10 @@ namespace NTracktive
 		public int Velocity { get; set; }
 		public string Name { get; set; }
 		// for PatternElement
+		// HACK: they should all be arrays.
 		public string Pattern { get; set; } // "1000101010001000"...
 		public string Velocities { get; set; }
+		public string Gates { get; set; }
 	}
 
 	public class PatternsElement
