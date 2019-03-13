@@ -365,6 +365,74 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public class ModifiersElement
 	{
+		public IList<AbstractModifierElement> Modifiers { get; set; } = new List<AbstractModifierElement> ();
+	}
+	
+	// These elements are used both as definitions and as uses...
+	public abstract class AbstractModifierElement
+	{
+		// definitions
+		public string Id { get; set; }
+		public bool RemapOnTempoChange { get; set; }
+		public string Colour { get; set; }
+		public string Base64_Parameters { get; set; }
+
+		// uses
+		public int? Source { get; set; }
+		public string ParamID { get; set; }
+		public double? Value { get; set; }
+		
+		// definitions
+		public ModifierAssignmentsElement ModifierAssignments { get; set; }
+	}
+
+	public class LFOElement : AbstractModifierElement
+	{
+		public double? Rate { get; set; }
+		public double? RateType { get; set; }
+		public double? SyncType { get; set; }
+		public double? Wave { get; set; }
+	}
+
+	public class StepElement : AbstractModifierElement
+	{
+		// definitions
+		public double? SyncType { get; set; }
+		public double? NumSteps { get; set; }
+	}
+
+	public class EnvelopeFollowerElement : AbstractModifierElement
+	{
+		// definitions
+		public double? Enabled { get; set; } // looks like every parameter is number-based
+		public double? GainDb { get; set; }
+		public double? Attack { get; set; }
+		public double? Hold { get; set; }
+		public double? Release { get; set; }
+	}
+
+	public class RandomElement : AbstractModifierElement
+	{
+		public double? Type { get; set; }
+		public double? Shape { get; set; }
+		public double? SyncType { get; set; }
+		public double? Rate { get; set; }
+	}
+
+	public class MidiTrackerElement : AbstractModifierElement
+	{
+		public NodesElement Nodes { get; set; }
+	}
+	
+	public class NodesElement
+	{
+		public IList<NodeElement> Nodes { get; set; } = new List<NodeElement> ();
+	}
+
+	public class NodeElement
+	{
+		public int Midi { get; set; }
+		public double Value { get; set; }
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -396,6 +464,9 @@ namespace NTracktive
 		public double? WindowY { get; set; }
 		public bool? WindowLocked { get; set; }
 		public bool? RemapOnTempoChange { get; set; }
+		public double? Dry { get; set; }
+		[DataType (DataType.Base64Binary)]
+		public string Base64_Parameters { get; set; }
 
 		// elements
 		public MacroParametersElement MacroParameters { get; set; }
@@ -416,6 +487,7 @@ namespace NTracktive
 	[StructLayout (LayoutKind.Sequential)]
 	public class ModifierAssignmentsElement
 	{
+		public IList<AbstractModifierElement> Modifiers { get; set; } = new List<AbstractModifierElement> ();
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
