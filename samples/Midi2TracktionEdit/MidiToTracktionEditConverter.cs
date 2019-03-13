@@ -49,6 +49,7 @@ namespace Midi2TracktionEdit
 
 				switch (context.MarkerImportStrategy) {
 				case MarkerImportStrategy.Global:
+				//case MarkerImportStrategy.Default:
 					var markers = new List<MidiMessage> ();
 					int t = 0;
 					foreach (var m in SmfTrackMerger.Merge (context.Midi).Tracks [0].Messages) {
@@ -246,7 +247,9 @@ namespace Midi2TracktionEdit
 			var trackNameData = track.Messages.Select (m => m.Event).FirstOrDefault (e =>
 				e.EventType == MidiEvent.Meta && e.MetaType == MidiMetaType.TrackName).Data;
 			var trackName = trackNameData != null ? Encoding.UTF8.GetString (trackNameData) : null;
-			int firstProgramChangeValue = track.Messages.Select (m => m.Event).FirstOrDefault (e => e.EventType == MidiEvent.Program).Msb;
+			var progChgs = track.Messages.Select (m => m.Event)
+				.Where (e => e.EventType == MidiEvent.Program).ToArray ();
+			int firstProgramChangeValue = progChgs.Length > 0 ? progChgs [0].Msb : -1;
 			trackName = (0 <= firstProgramChangeValue && firstProgramChangeValue < GeneralMidi.InstrumentNames.Length) ? GeneralMidi.InstrumentNames [firstProgramChangeValue] : null;
 			return trackName;
 		}
