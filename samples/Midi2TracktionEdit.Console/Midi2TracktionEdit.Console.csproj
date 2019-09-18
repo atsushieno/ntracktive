@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="managed-midi" Version="1.9.8" />
+    <ProjectReference Include="..\..\NTracktive\NTracktive.csproj" />
     <ProjectReference Include="..\Midi2TracktionEdit/Midi2TracktionEdit.csproj" />
   </ItemGroup>
 </Project>

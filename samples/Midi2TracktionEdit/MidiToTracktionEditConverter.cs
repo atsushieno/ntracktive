@@ -56,7 +56,7 @@ namespace Midi2TracktionEdit
 						if (m.Event.EventType == MidiEvent.Meta &&
 						    m.Event.MetaType == MidiMetaType.Marker)
 							markers.Add (new MidiMessage (t,
-								new MidiEvent (MidiEvent.Meta, 0, 0, m.Event.Data)));
+								new MidiEvent (MidiEvent.Meta, 0, 0, m.Event.ExtraData, m.Event.ExtraDataOffset, m.Event.ExtraDataLength)));
 					}
 
 					global_markers = markers.ToArray ();
@@ -128,9 +128,9 @@ namespace Midi2TracktionEdit
 			Action nextClip = () => {
 				terminateClip ();
 				currentClipStart = ToTracktionBarSpec (nextGlobalMarker.DeltaTime);
-				string name = nextGlobalMarker.Event.Data == null
+				string name = nextGlobalMarker.Event.ExtraData == null
 					? null
-					: Encoding.UTF8.GetString (nextGlobalMarker.Event.Data);
+					: Encoding.UTF8.GetString (nextGlobalMarker.Event.ExtraData, nextGlobalMarker.Event.ExtraDataOffset, nextGlobalMarker.Event.ExtraDataLength);
 				clip = new MidiClipElement {Type = "midi", Speed = 1.0, Start = currentClipStart, Name = name};
 				ttrack.Clips.Add (clip);
 				seq = new SequenceElement ();
@@ -207,16 +207,16 @@ namespace Midi2TracktionEdit
 							}
 							break;
 						case MidiMetaType.Tempo:
-							currentBpm = ToBpm (msg.Event.Data);
+							currentBpm = ToBpm (msg.Event.ExtraData, msg.Event.ExtraDataOffset, msg.Event.ExtraDataLength);
 							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
 								StartBeat = ToTracktionBarSpec (currentTotalTime),
 								Curve = 1.0, Bpm = currentBpm
 							});
 							break;
 						case MidiMetaType.TimeSignature:
-							var timeSig = msg.Event.Data;
-							timeSigNumerator = timeSig [0];
-							timeSigDenominator = (int) Math.Pow (2, timeSig [1]);
+							var tsEv = msg.Event;
+							timeSigNumerator = tsEv.ExtraData [tsEv.ExtraDataOffset];
+							timeSigDenominator = (int) Math.Pow (2, tsEv.ExtraData [tsEv.ExtraDataOffset + 1]);
 							context.Edit.TempoSequence.TimeSignatures.Add (
 								new TimeSigElement { StartBeat = ToTracktionBarSpec (currentTotalTime), Numerator= timeSigNumerator, Denominator = timeSigDenominator });
 							// Tracktion engine has a problem that its tempo calculation goes fubar when timesig denomitator becomes non-4 value.
@@ -235,17 +235,17 @@ namespace Midi2TracktionEdit
 
 		}
 
-		double ToBpm (byte [] data)
+		double ToBpm (byte [] data, int offset, int length)
 		{
-			var t = (data [0] << 16) + (data [1] << 8) + data [2];
+			var t = (data [offset] << 16) + (data [offset + 1] << 8) + data [offset + 2];
 			return 60000000.0 / t;
 		}
 
 		string PopulateTrackName (MidiTrack track)
 		{
-			var trackNameData = track.Messages.Select (m => m.Event).FirstOrDefault (e =>
-				e.EventType == MidiEvent.Meta && e.MetaType == MidiMetaType.TrackName).Data;
-			var trackName = trackNameData != null ? Encoding.UTF8.GetString (trackNameData) : null;
+			var tnEv = track.Messages.Select (m => m.Event).FirstOrDefault (e =>
+				e.EventType == MidiEvent.Meta && e.MetaType == MidiMetaType.TrackName);
+			var trackName = tnEv.ExtraData != null ? Encoding.UTF8.GetString (tnEv.ExtraData, tnEv.ExtraDataOffset, tnEv.ExtraDataLength) : null;
 			var progChgs = track.Messages.Select (m => m.Event)
 				.Where (e => e.EventType == MidiEvent.Program).ToArray ();
 			int firstProgramChangeValue = progChgs.Length > 0 ? progChgs [0].Msb : -1;

@@ -14,7 +14,7 @@ namespace Midi2TracktionEdit
 			switch (args.Length) {
 			case 0:
 				Console.Error.WriteLine (
-					$"Usage: {Path.GetFileName (new Uri (typeof (MainClass).Assembly.CodeBase).LocalPath)} [.tracktionedit] [.mid]");
+					$"Usage: Midi2TracktionEdit [.tracktionedit] [.mid]");
 
 				new EditModelWriter ().Write (Console.Out, EditModelTemplate.CreateNewEmptyEdit ());
 				return;
