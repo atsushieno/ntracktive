@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi2TracktionEdit", "sampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi2TracktionEdit.Console", "samples\Midi2TracktionEdit.Console\Midi2TracktionEdit.Console.csproj", "{FA3A73E5-8093-477C-8057-0100BBDFA0FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugentrackted", "samples\Mugentrackted\Mugentrackted.csproj", "{C5F078EF-F6C6-45BF-A756-1E23638A5A34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,9 +29,14 @@ Global
 		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA3A73E5-8093-477C-8057-0100BBDFA0FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5F078EF-F6C6-45BF-A756-1E23638A5A34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5F078EF-F6C6-45BF-A756-1E23638A5A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5F078EF-F6C6-45BF-A756-1E23638A5A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5F078EF-F6C6-45BF-A756-1E23638A5A34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DEFF3B36-980A-46D6-8149-B5C3F02600E0} = {CE3A3859-E442-4205-966E-3B080BFD5AB1}
 		{FA3A73E5-8093-477C-8057-0100BBDFA0FC} = {CE3A3859-E442-4205-966E-3B080BFD5AB1}
+		{C5F078EF-F6C6-45BF-A756-1E23638A5A34} = {CE3A3859-E442-4205-966E-3B080BFD5AB1}
 	EndGlobalSection
 EndGlobal
