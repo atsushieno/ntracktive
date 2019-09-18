@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ntracktive</id>
+    <version>0.1.0</version>
+    <authors>atsushieno</authors>
+    <owners>atsushieno</owners>
+    <licenseUrl>http://github.com/atsushieno/ntracktive/tree/master/LICENSE</licenseUrl>
+    <projectUrl>http://github.com/atsushieno/ntracktive/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>XML generator for tracktion_engine and Waveform</description>
+    <releaseNotes>See github commit logs.</releaseNotes>
+    <copyright>copyright 2019 atsushieno</copyright>
+    <tags>Tracktion Waveform MIDI XML</tags>
+    <dependencies>
+      <dependency id="managed-midi" version="1.9.8" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="NTracktive\bin\Debug\netstandard2.0\*" target="lib\netstandard2.0" />
+    <file src="samples\Midi2TracktionEdit\bin\Debug\netstandard2.0\*.dll" target="lib\netstandard2.0" />
+  </files>
+</package>
