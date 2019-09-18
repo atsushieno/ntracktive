@@ -7,7 +7,6 @@ using System.Text;
 using System.Xml;
 using NTracktive;
 using Commons.Music.Midi;
-using CoreMidi;
 
 namespace Midi2TracktionEdit
 {
