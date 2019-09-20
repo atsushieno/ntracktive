@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi2TracktionEdit", "sampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi2TracktionEdit.Console", "samples\Midi2TracktionEdit.Console\Midi2TracktionEdit.Console.csproj", "{FA3A73E5-8093-477C-8057-0100BBDFA0FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mugentrackted", "samples\Mugentrackted\Mugentrackted.csproj", "{C5F078EF-F6C6-45BF-A756-1E23638A5A34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Augene", "samples\Augene\Augene.csproj", "{C5F078EF-F6C6-45BF-A756-1E23638A5A34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

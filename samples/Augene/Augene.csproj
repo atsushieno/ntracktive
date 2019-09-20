@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net461</TargetFramework>
+    <RootNamespace>Mugentrackted</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="managed-midi" Version="1.9.9" />
