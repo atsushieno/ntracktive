@@ -30,13 +30,13 @@ namespace Augene
             else
             {
                 proj.MmlStrings.Add("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
-                proj.Tracks.Add(new AugeneTrack {AudioGraph = "/home/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
+                proj.Tracks.Add(new AugeneTrack {AudioGraph = "/Users/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
             }
 
             var memoryStream = new MemoryStream();
             serializer.WriteObject(memoryStream, proj);
             memoryStream.Position = 0;
-            Console.WriteLine(new StreamReader(memoryStream).ReadToEnd());
+            Console.Error.WriteLine(new StreamReader(memoryStream).ReadToEnd());
 
             var compiler = new MmlCompiler();
             var mmls = proj.MmlFiles.Select(filename => 
@@ -75,7 +75,7 @@ namespace Augene
                 Filename = a.Filename,
                 Enabled = true,
                 Uid = a.Uid,
-                Type = a.Type,
+                Type = a.Type ?? "vst",
                 Name = a.Name,
                 Manufacturer = a.Manufacturer,
                 State = a.State,
