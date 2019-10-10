@@ -19,22 +19,22 @@ namespace Augene
     {
         public static void Main(string[] args)
         {
-            var serializer = new DataContractSerializer(typeof(AugeneProject));
+            var serializer = new XmlSerializer(typeof(AugeneProject));
             var proj = new AugeneProject();
             if (args.Length > 0)
             {
                 using (var fileStream = File.OpenRead(args[0]))
-                    proj = (AugeneProject) serializer.ReadObject(XmlDictionaryReader.CreateTextReader(
+                    proj = (AugeneProject) serializer.Deserialize(XmlDictionaryReader.CreateTextReader(
                         fileStream, new XmlDictionaryReaderQuotas()));
             }
             else
             {
                 proj.MmlStrings.Add("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
-                proj.Tracks.Add(new AugeneTrack {AudioGraph = "/Users/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
+                proj.Tracks.Add(new AugeneTrack {AudioGraph = "/home/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
             }
 
             var memoryStream = new MemoryStream();
-            serializer.WriteObject(memoryStream, proj);
+            serializer.Serialize(memoryStream, proj);
             memoryStream.Position = 0;
             Console.Error.WriteLine(new StreamReader(memoryStream).ReadToEnd());
 
@@ -85,9 +85,11 @@ namespace Augene
 
     public class AugeneProject
     {
-        public IList<AugeneTrack> Tracks { get; set; } = new List<AugeneTrack>();
-        public IList<string> MmlFiles { get; set; } = new List<string>();
-        public IList<string> MmlStrings { get; set; } = new List<string>();
+        public List<AugeneTrack> Tracks { get; set; } = new List<AugeneTrack>();
+        [XmlArrayItem("MmlFile")]
+        public List<string> MmlFiles { get; set; } = new List<string>();
+        [XmlArrayItem("MmlString")]
+        public List<string> MmlStrings { get; set; } = new List<string>();
     }
 
     public class AugeneTrack
@@ -145,6 +147,8 @@ namespace Augene
         //fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="0"
         //isShell="0"/>
         //<STATE>0.</STATE>
+        //
+        // For audio plugins there is something like `type="vst" ` too.
         public string Name { get; set; }
         public string DescriptiveName { get; set; }
         public string Format { get; set; }
