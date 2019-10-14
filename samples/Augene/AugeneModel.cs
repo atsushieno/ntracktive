@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,11 @@ namespace Augene {
 
 		public static void Save (AugeneProject project, string filename)
 		{
+			// sanitize absolute paths
+			foreach (var track in project.Tracks)
+				if (Path.IsPathRooted (track.AudioGraph))
+					track.AudioGraph = new Uri (filename).MakeRelativeUri (new Uri (track.AudioGraph)).ToString ();
+			
 			var serializer = new XmlSerializer (typeof (AugeneProject));
 			using (var tw = File.CreateText (filename))
 				serializer.Serialize (tw, project);
@@ -42,6 +48,34 @@ namespace Augene {
 
 	public class AudioGraph
 	{
+		public const string EmptyAudioGraph = @"<FILTERGRAPH>
+  <FILTER uid='5' x='0.5' y='0.1'>
+    <PLUGIN name='Audio Input' descriptiveName='' format='Internal' category='I/O devices' manufacturer='JUCE' version='1.0' file='' uid='246006c0' isInstrument='0' fileTime='0' infoUpdateTime='0' numInputs='0' numOutputs='4' isShell='0'/>
+    <STATE>0.</STATE>
+    <LAYOUT>
+      <INPUTS><BUS index='0' layout='disabled'/></INPUTS>
+      <OUTPUTS><BUS index='0' layout='disabled'/></OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+  <FILTER uid='6' x='0.25' y='0.1'>
+    <PLUGIN name='Midi Input' descriptiveName='' format='Internal' category='I/O devices' manufacturer='JUCE' version='1.0' file='' uid='cb5fde0b' isInstrument='0' fileTime='0' infoUpdateTime='0' numInputs='0' numOutputs='0' isShell='0'/>
+    <STATE>0.</STATE>
+    <LAYOUT>
+      <INPUTS><BUS index='0' layout='disabled'/></INPUTS>
+      <OUTPUTS><BUS index='0' layout='disabled'/></OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+  <FILTER uid='7' x='0.5' y='0.9'>
+    <PLUGIN name='Audio Output' descriptiveName='' format='Internal' category='I/O devices' manufacturer='JUCE' version='1.0' file='' uid='724248cb' isInstrument='0' fileTime='0' infoUpdateTime='0' numInputs='0' numOutputs='0' isShell='0'/>
+    <STATE>0.</STATE>
+    <LAYOUT>
+      <INPUTS><BUS index='0' layout='L R Ls Rs'/></INPUTS>
+      <OUTPUTS><BUS index='0' layout='disabled'/></OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+</FILTERGRAPH>
+";
+		
 		public static IEnumerable<AudioGraph> Load (XmlReader reader)
 		{
 			var ret = new AudioGraph ();

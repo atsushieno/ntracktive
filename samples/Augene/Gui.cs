@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms.VisualStyles;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -18,13 +22,8 @@ namespace Augene
 
 	public class AugeneWindow : Window
 	{
-		public AugeneWindow ()
+		void SetupMainMenu ()
 		{
-			Title = "Augene Project Tool";
-			Width = 400;
-			Height = 400;
-			Closed += (o, e) => Application.Exit ();
-
 			var menu = new Menu ();
 			MainMenu = menu;
 			var file = new MenuItem ("_File");
@@ -42,7 +41,21 @@ namespace Augene
 			var fileExit = new MenuItem ("E_xit");
 			fileExit.Clicked += delegate { Application.Exit (); };
 			file.SubMenu.Items.Add (fileExit);
+		}
 
+		public AugeneWindow ()
+		{
+			Title = "Augene Project Tool";
+			Width = 400;
+			Height = 400;
+			Closed += (o, e) => Application.Exit ();
+
+			SetupMainMenu ();
+			InitializeContent ();
+		}
+		
+		void InitializeContent ()
+		{
 			var hbox = new HBox ();
 			var trackBox = new VBox ();
 
@@ -51,6 +64,27 @@ namespace Augene
 			trackListView.Columns.Add ("ID", trackIdField);
 			trackListView.Columns.Add ("AudioGraph", trackAudioGraphField);
 			trackListView.DataSource = listStore;
+			trackListView.ButtonPressed += (o, e) => {
+				if (e.Button == PointerButton.Right) {
+					var contextMenu = new Menu ();
+					
+					var newTrackMenuItem = new MenuItem("New track");
+					newTrackMenuItem.Clicked += delegate { ProcessNewTrack (false); };
+					contextMenu.Items.Add (newTrackMenuItem);
+
+					var newTrackWithFileMenuItem = new MenuItem("New track with existing AudioGraph");
+					newTrackWithFileMenuItem.Clicked += delegate { ProcessNewTrack (true); };
+					contextMenu.Items.Add (newTrackWithFileMenuItem);
+					
+					var deleteTracksMenuItem = new MenuItem("Delete selected track(s)");
+					deleteTracksMenuItem.Clicked += delegate { ProcessDeleteTracks (); };
+					deleteTracksMenuItem.Sensitive = trackListView.SelectedRows.Any ();
+
+					contextMenu.Items.Add (deleteTracksMenuItem);
+
+					contextMenu.Popup ();
+				}
+			};
 
 			trackBox.PackStart (trackListView, true);
 
@@ -70,23 +104,32 @@ namespace Augene
 			Content = hbox;
 		}
 
+		void ResetContent ()
+		{
+			var trackListStore = (ListStore) trackListView.DataSource;
+			trackListStore.Clear ();
+			var mmlListStore = (ListStore) mmlFileListView.DataSource;
+			mmlListStore.Clear ();
+			
+			foreach (var track in model.Project.Tracks) {
+				int idx = trackListStore.AddRow ();
+				trackListStore.SetValues (idx, trackIdField, track.Id, trackAudioGraphField,
+					track.AudioGraph);
+			}
+			foreach (var mmlFile in model.Project.MmlFiles) {
+				int idx = mmlListStore.AddRow ();
+				mmlListStore.SetValue (idx, mmlFileField, mmlFile);
+			}
+		}
+
 		void ProcessOpenProject ()
 		{
 			var dlg = new OpenFileDialog ("Open Augene Project");
 			if (dlg.Run ()) {
 				model.Project = AugeneModel.Load (dlg.FileName);
 				model.ProjectFileName = dlg.FileName;
-				var trackListStore = (ListStore) trackListView.DataSource;
-				foreach (var track in model.Project.Tracks) {
-					int idx = trackListStore.AddRow ();
-					trackListStore.SetValues (idx, trackIdField, track.Id, trackAudioGraphField,
-						track.AudioGraph);
-				}
-				var mmlListStore = (ListStore) mmlFileListView.DataSource;
-				foreach (var mmlFile in model.Project.MmlFiles) {
-					int idx = mmlListStore.AddRow ();
-					mmlListStore.SetValue (idx, mmlFileField, mmlFile);
-				}
+
+				ResetContent ();
 			}
 		}
 
@@ -101,6 +144,49 @@ namespace Augene
 					return;
 			}
 			AugeneModel.Save (model.Project, model.ProjectFileName);
+		}
+
+		void ProcessNewTrack (bool selectFileInsteadOfNewFile)
+		{
+			if (selectFileInsteadOfNewFile) {
+				var dlg = new OpenFileDialog ("Select existing AudioGraph file for a new track");
+				if (dlg.Run ())
+					AddNewTrack (dlg.FileName);
+			} else {
+				var dlg = new SaveFileDialog ("New AudioGraph file for a new track");
+				if (dlg.Run ()) {
+					File.WriteAllText (dlg.FileName, AudioGraph.EmptyAudioGraph);
+					AddNewTrack (dlg.FileName);
+				}
+			}
+		}
+
+		void AddNewTrack (string filename)
+		{
+			string filenameRelative = filename;
+			if (model.ProjectFileName != null)
+				filenameRelative = new Uri (model.ProjectFileName).MakeRelative (new Uri (filename)); 
+			int newTrackId = 1 + (int) model.Project.Tracks.Select (t => t.Id).Max ();
+			model.Project.Tracks.Add (new AugeneTrack
+				{Id = newTrackId, AudioGraph = filenameRelative});
+
+			ResetContent ();
+		}
+
+		void ProcessDeleteTracks ()
+		{
+			var trackListStore = (ListStore) trackListView.DataSource;
+			var trackIds = new List<double> ();
+			int [] rows = (int []) trackListView.SelectedRows.Clone ();
+			foreach (var row in rows.Reverse ()) {
+				trackIds.Add (trackListStore.GetValue (row, trackIdField));
+			}
+
+			var tracksRemaining = model.Project.Tracks.Where (t => !trackIds.Contains (t.Id)).ToArray ();
+			model.Project.Tracks.Clear ();
+			model.Project.Tracks.AddRange (tracksRemaining);
+			
+			ResetContent ();
 		}
 
 		AugeneModel model = new AugeneModel ();

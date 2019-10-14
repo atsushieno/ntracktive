@@ -5,6 +5,14 @@
       <Id>1</Id>
       <AudioGraph>sample.filtergraph</AudioGraph>
     </AugeneTrack>
+    <AugeneTrack>
+      <Id>2</Id>
+      <AudioGraph>sample2.filtergraph</AudioGraph>
+    </AugeneTrack>
+    <AugeneTrack>
+      <Id>3</Id>
+      <AudioGraph>sample3.filtergraph</AudioGraph>
+    </AugeneTrack>
   </Tracks>
   <MmlFiles>
     <MmlFile>sample.mugene</MmlFile>
