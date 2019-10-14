@@ -31,6 +31,9 @@ namespace Augene {
 		
 		public AugeneProject Project { get; set; }
 		public string ProjectFileName { get; set; }
+		
+		public string ConfigAudioPluginHostPath { get; set; }
+		public string ConfigPlaybackDemoPath { get; set; }
 	}
 
 	public class AugeneProject
