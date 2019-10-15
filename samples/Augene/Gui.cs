@@ -207,8 +207,8 @@ namespace Augene
 		void ProcessConfigure ()
 		{
 			var dlg = new Dialog ();
-			dlg.Width = Width;
-			dlg.Height = Height;
+			dlg.Width = 600;
+			dlg.Height = 150;
 			var vbox = new VBox ();
 			dlg.Content = vbox;
 			var pentry = new TextEntry ();
@@ -216,7 +216,7 @@ namespace Augene
 			Action<string, TextEntry> f = (label, entry) => {
 				var box = new HBox ();
 				box.PackStart (new Label(label));
-				box.PackStart (entry);
+				box.PackStart (entry, true);
 				var button = new Button ("Select");
 				button.Clicked += delegate {
 					var dialog = new OpenFileDialog ();
