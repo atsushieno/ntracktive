@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ntracktive</id>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <authors>atsushieno</authors>
     <owners>atsushieno</owners>
     <licenseUrl>http://github.com/atsushieno/ntracktive/tree/master/LICENSE</licenseUrl>
@@ -13,7 +13,7 @@
     <copyright>copyright 2019 atsushieno</copyright>
     <tags>Tracktion Waveform MIDI XML</tags>
     <dependencies>
-      <dependency id="managed-midi" version="1.9.8" />
+      <dependency id="managed-midi" version="1.9.12" />
     </dependencies>
   </metadata>
   <files>
