@@ -28,6 +28,8 @@ namespace Augene
 		{
 			var menu = new Menu ();
 			MainMenu = menu;
+			
+			// File
 			var file = new MenuItem ("_File");
 			file.SubMenu = new Menu ();
 			menu.Items.Add (file);
@@ -47,6 +49,19 @@ namespace Augene
 			var exit = new MenuItem ("E_xit");
 			exit.Clicked += delegate { Application.Exit (); };
 			file.SubMenu.Items.Add (exit);
+
+			// Project
+			var project = new MenuItem ("_Project");
+			project.SubMenu = new Menu ();
+			menu.Items.Add (project);
+
+			var compile = new MenuItem ("_Compile");
+			project.SubMenu.Items.Add (compile);
+			compile.Clicked += delegate { model.ProcessCompile (); };
+
+			var play = new MenuItem ("_Play");
+			project.SubMenu.Items.Add (play);
+			play.Clicked += delegate { model.ProcessPlay (); };
 		}
 
 		public AugeneWindow ()
