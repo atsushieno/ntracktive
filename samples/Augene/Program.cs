@@ -36,53 +36,13 @@ namespace Augene
 					{AudioGraph = "/home/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
 			}
 
+			// dump project content.
 			var memoryStream = new MemoryStream ();
 			serializer.Serialize (memoryStream, proj);
 			memoryStream.Position = 0;
 			Console.Error.WriteLine (new StreamReader (memoryStream).ReadToEnd ());
 
-			var compiler = new MmlCompiler ();
-			var mmls = proj.MmlFiles.Select (filename =>
-					new MmlInputSource (filename, new StringReader (File.ReadAllText (filename))))
-				.Concat (proj.MmlStrings.Select (s =>
-					new MmlInputSource ("(no file)", new StringReader (s))));
-			var music = compiler.Compile (false, mmls.ToArray ());
-			var converter = new MidiToTracktionEditConverter ();
-			var edit = new EditElement ();
-			converter.ImportMusic (new MidiImportContext (music, edit));
-			var dstTracks = edit.Tracks.OfType<TrackElement> ().ToArray ();
-			for (int n = 0; n < dstTracks.Length; n++)
-				if (edit.Tracks [n].Id == null)
-					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
-			foreach (var track in proj.Tracks) {
-				var dstTrack = dstTracks.FirstOrDefault (t =>
-					t.Id == track.Id.ToString (CultureInfo.CurrentCulture));
-				if (dstTrack == null)
-					continue;
-				var existingPlugins = dstTrack.Plugins.ToArray ();
-				dstTrack.Plugins.Clear ();
-				foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
-					AudioGraph.Load (XmlReader.Create (track.AudioGraph)))))
-					dstTrack.Plugins.Add (p);
-				// recover volume and level at the end.
-				foreach (var p in existingPlugins)
-					dstTrack.Plugins.Add (p);
-			}
-
-			new EditModelWriter ().Write (Console.Out, edit);
-		}
-
-		static IEnumerable<PluginElement> ToTracktion (IEnumerable<AugenePluginSpecifier> src)
-		{
-			return src.Select (a => new PluginElement {
-				Filename = a.Filename,
-				Enabled = true,
-				Uid = a.Uid,
-				Type = a.Type ?? "vst",
-				Name = a.Name,
-				Manufacturer = a.Manufacturer,
-				State = a.State,
-			});
+			AugeneModel.Compile (proj);
 		}
 	}
 }
