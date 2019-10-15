@@ -56,8 +56,47 @@ namespace Augene
 			Height = 400;
 			Closed += (o, e) => Application.Exit ();
 
+			LoadConfiguration ();
 			SetupMainMenu ();
 			InitializeContent ();
+		}
+
+		void LoadConfiguration ()
+		{
+			using (var fs = IsolatedStorageFile.GetUserStoreForAssembly ()) {
+				if (!fs.FileExists (ConfigXmlFile))
+					return;
+				try {
+					using (var file = fs.OpenFile (ConfigXmlFile, FileMode.Open)) {
+						using (var xr = XmlReader.Create (file)) {
+							xr.MoveToContent ();
+							xr.ReadStartElement ("config");
+							model.ConfigPlaybackDemoPath =
+								xr.ReadElementString ("PlaybackDemo");
+							model.ConfigAudioPluginHostPath =
+								xr.ReadElementString ("AudioPluginHost");
+						}
+					}
+				} catch (Exception ex) {
+					Console.WriteLine (ex);
+					MessageDialog.ShowWarning ("Failed to load configuration file. It is ignored.");
+				}
+			}
+		}
+
+		void SaveConfiguration ()
+		{
+			using (var fs = IsolatedStorageFile.GetUserStoreForAssembly ()) {
+				using (var file = fs.CreateFile (ConfigXmlFile)) {
+					using (var xw = XmlWriter.Create (file)) {
+						xw.WriteStartElement ("config");
+						xw.WriteElementString ("PlaybackDemo",
+							model.ConfigPlaybackDemoPath);
+						xw.WriteElementString ("AudioPluginHost",
+							model.ConfigAudioPluginHostPath);
+					}
+				}
+			}
 		}
 		
 		void InitializeContent ()
@@ -71,8 +110,9 @@ namespace Augene
 			trackListView.Columns.Add ("AudioGraph", trackAudioGraphField);
 			trackListView.DataSource = listStore;
 			trackListView.ButtonPressed += (o, e) => {
-				if (e.MultiplePress > 1) {
-					
+				if (e.MultiplePress > 1 && trackListView.SelectedRows.Length == 1) {
+					ProcessLaunchAudioPluginHost (listStore.GetValue (trackListView.SelectedRow,
+						trackAudioGraphField));
 				}
 				if (e.Button == PointerButton.Right) {
 					var contextMenu = new Menu ();
@@ -242,16 +282,16 @@ namespace Augene
 			model.ConfigPlaybackDemoPath = pentry.Text;
 			model.ConfigAudioPluginHostPath = aentry.Text;
 			
-			using (var fs = IsolatedStorageFile.GetUserStoreForAssembly ()) {
-				using (var file = fs.CreateFile (ConfigXmlFile)) {
-					using (var xw = XmlWriter.Create (file)) {
-						xw.WriteStartElement ("config");
-						xw.WriteElementString ("PlaybackDemo",
-							model.ConfigPlaybackDemoPath);
-						xw.WriteElementString ("AudioPluginHost",
-							model.ConfigAudioPluginHostPath);
-					}
-				}
+			SaveConfiguration ();
+		}
+
+		void ProcessLaunchAudioPluginHost (string audioGraphFile)
+		{
+			if (model.ConfigAudioPluginHostPath == null)
+				MessageDialog.ShowWarning ("AudioPluginHost path is not configured [File > Configure].");
+			else {
+				Process.Start (model.ConfigAudioPluginHostPath,
+					Path.Combine (model.ProjectFileName, audioGraphFile));
 			}
 		}
 
