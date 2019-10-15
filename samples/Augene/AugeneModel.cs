@@ -32,13 +32,13 @@ namespace Augene {
 	
 	public class AugeneModel
 	{
-		public void Compile (AugeneProject project, string projectFilename)
+		public void Compile ()
 		{
-			Func<string, string> abspath = (src) => Path.Combine (Path.GetDirectoryName (projectFilename), src);
+			Func<string, string> abspath = (src) => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), src);
 			var compiler = new MmlCompiler ();
-			var mmls = project.MmlFiles.Select (filename => abspath (filename)).Select (filename =>
-					new MmlInputSource (filename, new StringReader (File.ReadAllText (filename))))
-				.Concat (project.MmlStrings.Select (s =>
+			var mmlFilesAbs = Project.MmlFiles.Select (filename => abspath (filename)).ToArray ();
+			var mmls = mmlFilesAbs.Select (f => new MmlInputSource (f, new StringReader (File.ReadAllText (f))))
+				.Concat (Project.MmlStrings.Select (s =>
 					new MmlInputSource ("(no file)", new StringReader (s))));
 			var music = compiler.Compile (false, mmls.ToArray ());
 			var converter = new MidiToTracktionEditConverter ();
@@ -48,7 +48,7 @@ namespace Augene {
 			for (int n = 0; n < dstTracks.Length; n++)
 				if (edit.Tracks [n].Id == null)
 					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
-			foreach (var track in project.Tracks) {
+			foreach (var track in Project.Tracks) {
 				var dstTrack = dstTracks.FirstOrDefault (t =>
 					t.Id == track.Id.ToString (CultureInfo.CurrentCulture));
 				if (dstTrack == null)
@@ -63,7 +63,7 @@ namespace Augene {
 					dstTrack.Plugins.Add (p);
 			}
 
-			string outfile = OutputEditFileName ?? Path.ChangeExtension (ProjectFileName, ".tracktionedit");
+			string outfile = OutputEditFileName ?? Path.ChangeExtension (abspath (ProjectFileName), ".tracktionedit");
 			using (var sw = File.CreateText (outfile))
 				new EditModelWriter ().Write (sw, edit);
 		}
@@ -211,7 +211,7 @@ namespace Augene {
 			if (ProjectFileName == null)
 				ProcessSaveProject ();
 			if (ProjectFileName != null)
-				Compile (Project, ProjectFileName);
+				Compile ();
 		}
 
 		public void ProcessPlay ()

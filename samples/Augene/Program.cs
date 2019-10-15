@@ -63,23 +63,25 @@ namespace Augene
 			var model = new AugeneModel (new ConsoleDialogs ());
 
 			var serializer = new XmlSerializer (typeof (AugeneProject));
-			var proj = new AugeneProject ();
+			model.Project = new AugeneProject ();
 			if (args.Length > 0) {
-				proj = AugeneProject.Load (args [0]);
+				model.Project = AugeneProject.Load (args [0]);
 			}
 			else {
-				proj.MmlStrings.Add ("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
-				proj.Tracks.Add (new AugeneTrack
+				model.Project.MmlFiles.Add ("/sources/commons-music-prog/ntractive/samples/Augene/samples/sample.mugene");
+				model.Project.MmlStrings.Add ("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
+				model.Project.Tracks.Add (new AugeneTrack
 					{AudioGraph = "/home/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
 			}
 
 			// dump project content.
+			model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
 			var memoryStream = new MemoryStream ();
-			serializer.Serialize (memoryStream, proj);
+			serializer.Serialize (memoryStream, model.Project);
 			memoryStream.Position = 0;
 			Console.Error.WriteLine (new StreamReader (memoryStream).ReadToEnd ());
 
-			model.Compile (proj, Path.Combine (Directory.GetCurrentDirectory (), "dummy"));
+			model.Compile ();
 		}
 	}
 }
