@@ -202,8 +202,8 @@ namespace Augene
 			dlg.Height = 150;
 			var vbox = new VBox ();
 			dlg.Content = vbox;
-			var pentry = new TextEntry ();
-			var aentry = new TextEntry ();
+			var pentry = new TextEntry { Text = model.ConfigPlaybackDemoPath };
+			var aentry = new TextEntry { Text = model.ConfigAudioPluginHostPath };
 			Action<string, TextEntry> f = (label, entry) => {
 				var box = new HBox ();
 				box.PackStart (new Label(label));

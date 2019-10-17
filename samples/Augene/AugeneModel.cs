@@ -66,8 +66,10 @@ namespace Augene {
 			}
 
 			string outfile = OutputEditFileName ?? abspath (Path.ChangeExtension (Path.GetFileName (ProjectFileName), ".tracktionedit"));
-			using (var sw = File.CreateText (outfile))
+			using (var sw = File.CreateText (outfile)) {
 				new EditModelWriter ().Write (sw, edit);
+				OutputEditFileName = outfile;
+			}
 		}
 
 		static IEnumerable<PluginElement> ToTracktion (IEnumerable<AugenePluginSpecifier> src)
