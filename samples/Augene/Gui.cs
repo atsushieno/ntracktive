@@ -158,6 +158,37 @@ namespace Augene
 			var mmlListStore = new ListStore (mmlFileField);
 			mmlFileListView.Columns.Add ("mugene MML file", mmlFileField);
 			mmlFileListView.DataSource = mmlListStore;
+			mmlFileListView.ButtonPressed += (o, e) => {
+				if (e.MultiplePress > 1 && mmlFileListView.SelectedRows.Length == 1) {
+					Process.Start (model.GetItemFileAbsolutePath (
+						mmlListStore.GetValue (mmlFileListView.SelectedRow, mmlFileField)));
+				}
+				if (e.Button == PointerButton.Right) {
+					var contextMenu = new Menu ();
+					
+					var newMmlMenuItem = new MenuItem("New MML");
+					newMmlMenuItem.Clicked += delegate { model.ProcessNewMmlFile (false); };
+					contextMenu.Items.Add (newMmlMenuItem);
+
+					var addExistingMml = new MenuItem("Add existing MML");
+					addExistingMml.Clicked += delegate { model.ProcessNewMmlFile (true); };
+					contextMenu.Items.Add (addExistingMml);
+					
+					var unregisterMmlMenuItem = new MenuItem("Remove selected MML(s) from project");
+					unregisterMmlMenuItem.Clicked += delegate { UnregisterSelectedMmlFiles (); };
+					unregisterMmlMenuItem.Sensitive = mmlFileListView.SelectedRows.Any ();
+
+					contextMenu.Items.Add (unregisterMmlMenuItem);
+
+					contextMenu.Popup ();
+				}
+			};
+			mmlFileListView.KeyPressed += (o, e) => {
+				if (e.Key == Key.Delete || e.Key == Key.BackSpace) {
+					UnregisterSelectedMmlFiles ();
+					e.Handled = true;
+				}
+			};
 			
 			mmlFileBox.PackStart (mmlFileListView, true);
 			
@@ -193,6 +224,17 @@ namespace Augene
 				trackIds.Add (trackListStore.GetValue (row, trackIdField));
 
 			model.ProcessDeleteTracks (trackIds);
+		}
+
+		void UnregisterSelectedMmlFiles ()
+		{
+			var mmlListStore = (ListStore) mmlFileListView.DataSource;
+			var mmlFiles = new List<string> ();
+			int [] rows = (int []) mmlFileListView.SelectedRows.Clone ();
+			foreach (var row in rows.Reverse ())
+				mmlFiles.Add (mmlListStore.GetValue (row, mmlFileField));
+
+			model.ProcessUnregisterMmlFiles (mmlFiles);
 		}
 
 		void ProcessConfigure ()

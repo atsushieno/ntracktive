@@ -142,6 +142,19 @@ namespace Augene {
 
 		public event Action RefreshRequested;
 
+		public string GetItemFileRelativePath (string itemFilename)
+		{
+			string filenameRelative = itemFilename;
+			if (ProjectFileName != null)
+				filenameRelative = new Uri (ProjectFileName).MakeRelative (new Uri (itemFilename));
+			return filenameRelative;
+		}
+
+		public string GetItemFileAbsolutePath (string itemFilename)
+		{
+			return Path.Combine (Path.GetDirectoryName (ProjectFileName), itemFilename);
+		}
+
 		public void ProcessOpenProject ()
 		{
 			var files = Dialogs.ShowOpenFileDialog ("Open Augene Project");
@@ -182,20 +195,47 @@ namespace Augene {
 
 		public void AddNewTrack (string filename)
 		{
-			string filenameRelative = filename;
-			if (ProjectFileName != null)
-				filenameRelative = new Uri (ProjectFileName).MakeRelative (new Uri (filename)); 
 			int newTrackId = 1 + (int) Project.Tracks.Select (t => t.Id).Max ();
-			Project.Tracks.Add (new AugeneTrack {Id = newTrackId, AudioGraph = filenameRelative});
+			Project.Tracks.Add (new AugeneTrack {Id = newTrackId, AudioGraph = GetItemFileRelativePath (filename)});
 			
 			RefreshRequested?.Invoke ();
 		}
 
 		public void ProcessDeleteTracks (IEnumerable<double> trackIdsToRemove)
 		{
-			var tracksRemaining = Project.Tracks.Where (t => !trackIdsToRemove.Contains (t.Id));
+			var tracksRemaining = Project.Tracks.Where (t => !trackIdsToRemove.Contains (t.Id)).ToArray ();
 			Project.Tracks.Clear ();
 			Project.Tracks.AddRange (tracksRemaining);
+
+			RefreshRequested?.Invoke ();
+		}
+
+		public void ProcessNewMmlFile (bool selectFileInsteadOfNewFile)
+		{
+			if (selectFileInsteadOfNewFile) {
+				var files = Dialogs.ShowOpenFileDialog ("Select existing MML file");
+				if (files.Any ())
+					AddNewMmlFile (files [0]);
+			} else {
+				var files = Dialogs.ShowSaveFileDialog ("New MML file");
+				if (files.Any ()) {
+					File.WriteAllText (files [0], "// New MML file");
+					AddNewMmlFile (files [0]);
+				}
+			}
+		}
+		public void AddNewMmlFile (string filename)
+		{
+			Project.MmlFiles.Add (GetItemFileRelativePath (filename));
+			
+			RefreshRequested?.Invoke ();
+		}
+
+		public void ProcessUnregisterMmlFiles (IEnumerable<string> filesToUnregister)
+		{
+			var filesRemaining = Project.MmlFiles.Where (f => !filesToUnregister.Contains (f)).ToArray ();
+			Project.MmlFiles.Clear ();
+			Project.MmlFiles.AddRange (filesRemaining);
 
 			RefreshRequested?.Invoke ();
 		}
@@ -205,8 +245,7 @@ namespace Augene {
 			if (ConfigAudioPluginHostPath == null)
 				Dialogs.ShowWarning ("AudioPluginHost path is not configured [File > Configure].");
 			else {
-				Process.Start (ConfigAudioPluginHostPath,
-					Path.Combine (Path.GetDirectoryName (ProjectFileName), audioGraphFile));
+				Process.Start (ConfigAudioPluginHostPath, GetItemFileAbsolutePath (audioGraphFile));
 			}
 		}
 
