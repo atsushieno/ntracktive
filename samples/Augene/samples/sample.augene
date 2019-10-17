@@ -18,6 +18,6 @@
     <MmlFile>sample.mugene</MmlFile>
   </MmlFiles>
   <MmlStrings>
-    <MmlString> 1 @0 V110 v100 o5 l8 cegcegeg  &gt; c1 </MmlString>
+    <MmlString>1    @0 V110 v100 o5 l8 cegcegeg  &gt; c1 </MmlString>
   </MmlStrings>
 </AugeneProject>
