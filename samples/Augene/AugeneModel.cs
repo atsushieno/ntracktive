@@ -34,9 +34,11 @@ namespace Augene {
 	{
 		public void Compile ()
 		{
-			Func<string, string> abspath = (src) => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), src);
+			if (ProjectFileName == null)
+				throw new InvalidOperationException ("To compile the project, ProjectFileName must be specified in prior");
+			Func<string, string> abspath = src => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), src);
 			var compiler = new MmlCompiler ();
-			var mmlFilesAbs = Project.MmlFiles.Select (filename => abspath (filename)).ToArray ();
+			var mmlFilesAbs = Project.MmlFiles.Select (_ => abspath (_)).ToArray ();
 			var mmls = mmlFilesAbs.Select (f => new MmlInputSource (f, new StringReader (File.ReadAllText (f))))
 				.Concat (Project.MmlStrings.Select (s =>
 					new MmlInputSource ("(no file)", new StringReader (s))));
@@ -63,7 +65,7 @@ namespace Augene {
 					dstTrack.Plugins.Add (p);
 			}
 
-			string outfile = OutputEditFileName ?? Path.ChangeExtension (abspath (ProjectFileName), ".tracktionedit");
+			string outfile = OutputEditFileName ?? abspath (Path.ChangeExtension (Path.GetFileName (ProjectFileName), ".tracktionedit"));
 			using (var sw = File.CreateText (outfile))
 				new EditModelWriter ().Write (sw, edit);
 		}

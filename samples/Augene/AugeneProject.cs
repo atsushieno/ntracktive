@@ -12,7 +12,6 @@ namespace Augene {
 		public static AugeneProject Load (string filename)
 		{
 			var serializer = new XmlSerializer (typeof (AugeneProject));
-			var proj = new AugeneProject ();
 			using (var fileStream = File.OpenRead (filename))
 				return (AugeneProject) serializer.Deserialize (XmlReader.Create (fileStream));
 		}

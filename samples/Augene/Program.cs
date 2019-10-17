@@ -66,16 +66,17 @@ namespace Augene
 			model.Project = new AugeneProject ();
 			if (args.Length > 0) {
 				model.Project = AugeneProject.Load (args [0]);
+				model.ProjectFileName = args [0];
 			}
 			else {
 				model.Project.MmlFiles.Add ("/sources/commons-music-prog/ntractive/samples/Augene/samples/sample.mugene");
 				model.Project.MmlStrings.Add ("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
 				model.Project.Tracks.Add (new AugeneTrack
 					{AudioGraph = "/home/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
+				model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
 			}
 
 			// dump project content.
-			model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
 			var memoryStream = new MemoryStream ();
 			serializer.Serialize (memoryStream, model.Project);
 			memoryStream.Position = 0;
