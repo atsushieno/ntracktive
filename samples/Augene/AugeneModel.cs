@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Xml;
 using Commons.Music.Midi.Mml;
 using Midi2TracktionEdit;
@@ -266,6 +267,41 @@ namespace Augene {
 				if (OutputEditFileName != null)
 					Process.Start (ConfigPlaybackDemoPath, ProjectFileName);
 			}
+		}
+		
+		
+		public void OpenFileOrContainingFolder (string fullPath)
+		{
+			if (Environment.OSVersion.Platform == PlatformID.Unix) {
+				if (IsRunningOnMac ())
+					Process.Start ("open", fullPath);
+				else
+					Process.Start ("xdg-open", fullPath);
+			}
+			else
+				Process.Start ("explorer", fullPath);
+		}
+
+		[DllImport ("libc")]
+		static extern int uname (IntPtr buf);
+
+		static bool IsRunningOnMac ()
+		{
+			IntPtr buf = IntPtr.Zero;
+			try {
+				buf = Marshal.AllocHGlobal (8192);
+				// This is a hacktastic way of getting sysname from uname ()
+				if (uname (buf) == 0) {
+					string os = Marshal.PtrToStringAnsi (buf);
+					if (os == "Darwin")
+						return true;
+				}
+			} catch {
+			} finally {
+				if (buf != IntPtr.Zero)
+					Marshal.FreeHGlobal (buf);
+			}
+			return false;
 		}
 	}
 }
