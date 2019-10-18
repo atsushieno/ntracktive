@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
 using System.Xml;
 using System.Xml.Linq;
@@ -112,13 +113,13 @@ namespace Augene
 			var trackBox = new VBox ();
 
 			trackListView = new ListView ();
-			var listStore = new ListStore (trackIdField, trackAudioGraphField);
+			var trackListStore = new ListStore (trackIdField, trackAudioGraphField);
 			trackListView.Columns.Add ("ID", trackIdField);
 			trackListView.Columns.Add ("AudioGraph", trackAudioGraphField);
-			trackListView.DataSource = listStore;
+			trackListView.DataSource = trackListStore;
 			trackListView.ButtonPressed += (o, e) => {
 				if (e.MultiplePress > 1 && trackListView.SelectedRows.Length == 1) {
-					model.ProcessLaunchAudioPluginHost (listStore.GetValue (trackListView.SelectedRow,
+					model.ProcessLaunchAudioPluginHost (trackListStore.GetValue (trackListView.SelectedRow,
 						trackAudioGraphField));
 				}
 				if (e.Button == PointerButton.Right) {
@@ -131,6 +132,14 @@ namespace Augene
 					var newTrackWithFileMenuItem = new MenuItem("New track with existing AudioGraph");
 					newTrackWithFileMenuItem.Clicked += delegate { model.ProcessNewTrack (true); };
 					contextMenu.Items.Add (newTrackWithFileMenuItem);
+
+					var openContaininfFolder = new MenuItem("Open containing folder");
+					openContaininfFolder.Clicked += delegate {
+						OpenContainingFolder (model.GetItemFileAbsolutePath (
+							trackListStore.GetValue (trackListView.SelectedRow, trackAudioGraphField))); 
+					};
+					openContaininfFolder.Sensitive = mmlFileListView.SelectedRows.Length == 1;
+					contextMenu.Items.Add (openContaininfFolder);
 					
 					var deleteTracksMenuItem = new MenuItem("Delete selected track(s)");
 					deleteTracksMenuItem.Clicked += delegate { DeleteSelectedTracks (); };
@@ -173,6 +182,14 @@ namespace Augene
 					var addExistingMml = new MenuItem("Add existing MML");
 					addExistingMml.Clicked += delegate { model.ProcessNewMmlFile (true); };
 					contextMenu.Items.Add (addExistingMml);
+
+					var openContaininfFolder = new MenuItem("Open containing folder");
+					openContaininfFolder.Clicked += delegate {
+						OpenContainingFolder (model.GetItemFileAbsolutePath (
+							mmlListStore.GetValue (mmlFileListView.SelectedRow, mmlFileField)));
+					};
+					openContaininfFolder.Sensitive = mmlFileListView.SelectedRows.Length == 1;
+					contextMenu.Items.Add (openContaininfFolder);
 					
 					var unregisterMmlMenuItem = new MenuItem("Remove selected MML(s) from project");
 					unregisterMmlMenuItem.Clicked += delegate { UnregisterSelectedMmlFiles (); };
@@ -278,6 +295,40 @@ namespace Augene
 			model.SaveConfiguration ();
 		}
 
+		void OpenContainingFolder (string fullPath)
+		{
+			if (Environment.OSVersion.Platform == PlatformID.Unix) {
+				if (IsRunningOnMac ())
+					Process.Start ("open", Path.GetDirectoryName (fullPath));
+				else
+					Process.Start ("xdg-open", Path.GetDirectoryName (fullPath));
+			}
+			else
+				Process.Start ("explorer", Path.GetDirectoryName (fullPath));
+		}
+
+		[DllImport ("libc")]
+		static extern int uname (IntPtr buf);
+
+		static bool IsRunningOnMac ()
+		{
+			IntPtr buf = IntPtr.Zero;
+			try {
+				buf = Marshal.AllocHGlobal (8192);
+				// This is a hacktastic way of getting sysname from uname ()
+				if (uname (buf) == 0) {
+					string os = Marshal.PtrToStringAnsi (buf);
+					if (os == "Darwin")
+						return true;
+				}
+			} catch {
+			} finally {
+				if (buf != IntPtr.Zero)
+					Marshal.FreeHGlobal (buf);
+			}
+			return false;
+		}
+		
 		readonly AugeneModel model;
 		ListView trackListView;
 		readonly DataField<double> trackIdField = new DataField<double> ();
