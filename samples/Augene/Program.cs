@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -55,13 +56,24 @@ namespace Augene
 		
 		public static void Main (string [] args)
 		{
+			bool gui = false;
+			string audiopluginhost = null, augenePlayer = null;
+			new Mono.Options.OptionSet ()
+				.Add ("-gui", s => gui = true)
+				.Add ("-audiopluginhost=", s => audiopluginhost = s)
+				.Add ("-augene-player=", (s, v) => augenePlayer = s)
+				.Parse (args);
+			var model = new AugeneModel {
+				ConfigAudioPluginHostPath = audiopluginhost,
+				AugenePlayerPath = augenePlayer
+			};
 			if (args.Contains ("-gui") || args.Contains ("--gui")) {
-				GuiApplication.RunGui (args);
+				GuiApplication.RunGui (model);
 				return;
 			}
-			
-			var model = new AugeneModel (new ConsoleDialogs ());
 
+			model.Dialogs = new ConsoleDialogs ();
+			
 			var serializer = new XmlSerializer (typeof (AugeneProject));
 			model.Project = new AugeneProject ();
 			if (args.Length > 0) {
@@ -69,11 +81,12 @@ namespace Augene
 				model.ProjectFileName = args [0];
 			}
 			else {
-				model.Project.MmlFiles.Add ("/sources/commons-music-prog/ntractive/samples/Augene/samples/sample.mugene");
+				model.Project.MmlFiles.Add ("samples/sample.mugene");
 				model.Project.MmlStrings.Add ("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
-				model.Project.Tracks.Add (new AugeneTrack
-					{AudioGraph = "/home/atsushi/Desktop/Unnamed.filtergraph", Id = 1});
+				model.Project.Tracks.Add (new AugeneTrack {AudioGraph = "sample.filtergraph", Id = 1});
 				model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
+				
+				Console.Error.Write ("Create a project that looks like this:");
 			}
 
 			// dump project content.

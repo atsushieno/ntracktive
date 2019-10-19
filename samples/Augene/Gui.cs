@@ -8,10 +8,10 @@ namespace Augene
 {
 	public class GuiApplication
 	{
-		public static void RunGui (string [] args)
+		public static void RunGui (AugeneModel model)
 		{
 			Application.Initialize ();
-			new AugeneWindow ().Show ();
+			new AugeneWindow (model).Show ();
 			Application.Run ();
 		}
 	}
@@ -58,14 +58,15 @@ namespace Augene
 			play.Clicked += delegate { model.ProcessPlay (); };
 		}
 
-		public AugeneWindow ()
+		public AugeneWindow (AugeneModel model)
 		{
 			Title = "Augene Project Tool";
 			Width = 400;
 			Height = 400;
 			Closed += (o, e) => Application.Exit ();
 
-			model = new AugeneModel (new XwtDialogs ());
+			this.model = model;
+			model.Dialogs = new XwtDialogs ();
 			model.RefreshRequested += ResetContent;
 			model.LoadConfiguration ();
 			SetupMainMenu ();
@@ -254,7 +255,7 @@ namespace Augene
 			dlg.Height = 150;
 			var vbox = new VBox ();
 			dlg.Content = vbox;
-			var pentry = new TextEntry { Text = model.ConfigPlaybackDemoPath };
+			var pentry = new TextEntry { Text = model.AugenePlayerPath };
 			var aentry = new TextEntry { Text = model.ConfigAudioPluginHostPath };
 			Action<string, TextEntry> f = (label, entry) => {
 				var box = new HBox ();
@@ -270,7 +271,7 @@ namespace Augene
 				box.PackStart (button);
 				vbox.PackStart (box);
 			};
-			f ("Path to PlaybackDemo: ", pentry);
+			f ("Path to augene-player: ", pentry);
 			f ("Path to AudioPluginHost: ", aentry);
 			var ok = new Button ("OK");
 			ok.Clicked += delegate { dlg.Respond (Command.Ok); };
@@ -282,7 +283,7 @@ namespace Augene
 			hcommit.PackEnd (ok);
 			if (dlg.Run () == Command.Cancel)
 				return;
-			model.ConfigPlaybackDemoPath = pentry.Text;
+			model.AugenePlayerPath = pentry.Text;
 			model.ConfigAudioPluginHostPath = aentry.Text;
 			
 			model.SaveConfiguration ();

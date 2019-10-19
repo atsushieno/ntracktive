@@ -85,11 +85,6 @@ namespace Augene {
 				State = a.State,
 			});
 		}
-
-		public AugeneModel (DialogAbstraction dialogs)
-		{
-			Dialogs = dialogs;
-		}
 		
 		const string ConfigXmlFile = "augene-config.xml";
 		
@@ -99,7 +94,7 @@ namespace Augene {
 		public string OutputEditFileName { get; set; }
 		
 		public string ConfigAudioPluginHostPath { get; set; }
-		public string ConfigPlaybackDemoPath { get; set; }
+		public string AugenePlayerPath { get; set; }
 
 		public DialogAbstraction Dialogs { get; set; }
 
@@ -113,8 +108,8 @@ namespace Augene {
 						using (var xr = XmlReader.Create (file)) {
 							xr.MoveToContent ();
 							xr.ReadStartElement ("config");
-							ConfigPlaybackDemoPath =
-								xr.ReadElementString ("PlaybackDemo");
+							AugenePlayerPath =
+								xr.ReadElementString ("AugenePlayer");
 							ConfigAudioPluginHostPath =
 								xr.ReadElementString ("AudioPluginHost");
 						}
@@ -132,8 +127,8 @@ namespace Augene {
 				using (var file = fs.CreateFile (ConfigXmlFile)) {
 					using (var xw = XmlWriter.Create (file)) {
 						xw.WriteStartElement ("config");
-						xw.WriteElementString ("PlaybackDemo",
-							ConfigPlaybackDemoPath);
+						xw.WriteElementString ("AugenePlayer",
+							AugenePlayerPath);
 						xw.WriteElementString ("AudioPluginHost",
 							ConfigAudioPluginHostPath);
 					}
@@ -260,12 +255,12 @@ namespace Augene {
 
 		public void ProcessPlay ()
 		{
-			if (string.IsNullOrWhiteSpace (ConfigPlaybackDemoPath))
-				Dialogs.ShowWarning ("PlaybackDemo path is not configured [File > Configure].");
+			if (string.IsNullOrWhiteSpace (AugenePlayerPath))
+				Dialogs.ShowWarning ("augene-player path is not configured [File > Configure].");
 			else {
 				ProcessCompile ();
 				if (OutputEditFileName != null)
-					Process.Start (ConfigPlaybackDemoPath, ProjectFileName);
+					Process.Start (AugenePlayerPath, ProjectFileName);
 			}
 		}
 		
