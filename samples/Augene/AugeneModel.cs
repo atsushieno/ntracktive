@@ -290,7 +290,7 @@ namespace Augene {
 			else {
 				ProcessCompile ();
 				if (OutputEditFileName != null)
-					Process.Start (ConfigAugenePlayerPath, ProjectFileName);
+					Process.Start (ConfigAugenePlayerPath, OutputEditFileName);
 			}
 		}
 
