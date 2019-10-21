@@ -65,7 +65,7 @@ namespace Augene
 				.Parse (args);
 			var model = new AugeneModel {
 				ConfigAudioPluginHostPath = audiopluginhost,
-				AugenePlayerPath = augenePlayer
+				ConfigAugenePlayerPath = augenePlayer
 			};
 			if (args.Contains ("-gui") || args.Contains ("--gui")) {
 				GuiApplication.RunGui (model);

@@ -33,68 +33,18 @@ namespace Augene {
 	
 	public class AugeneModel
 	{
-		public void Compile ()
-		{
-			if (ProjectFileName == null)
-				throw new InvalidOperationException ("To compile the project, ProjectFileName must be specified in prior");
-			Func<string, string> abspath = src => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), src);
-			var compiler = new MmlCompiler ();
-			var mmlFilesAbs = Project.MmlFiles.Select (_ => abspath (_)).ToArray ();
-			var mmls = mmlFilesAbs.Select (f => new MmlInputSource (f, new StringReader (File.ReadAllText (f))))
-				.Concat (Project.MmlStrings.Select (s =>
-					new MmlInputSource ("(no file)", new StringReader (s))));
-			var music = compiler.Compile (false, mmls.ToArray ());
-			var converter = new MidiToTracktionEditConverter ();
-			var edit = new EditElement ();
-			converter.ImportMusic (new MidiImportContext (music, edit));
-			var dstTracks = edit.Tracks.OfType<TrackElement> ().ToArray ();
-			for (int n = 0; n < dstTracks.Length; n++)
-				if (edit.Tracks [n].Id == null)
-					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
-			foreach (var track in Project.Tracks) {
-				var dstTrack = dstTracks.FirstOrDefault (t =>
-					t.Id == track.Id.ToString (CultureInfo.CurrentCulture));
-				if (dstTrack == null)
-					continue;
-				var existingPlugins = dstTrack.Plugins.ToArray ();
-				dstTrack.Plugins.Clear ();
-				foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
-					AudioGraph.Load (XmlReader.Create (abspath (track.AudioGraph))))))
-					dstTrack.Plugins.Add (p);
-				// recover volume and level at the end.
-				foreach (var p in existingPlugins)
-					dstTrack.Plugins.Add (p);
-			}
-
-			string outfile = OutputEditFileName ?? abspath (Path.ChangeExtension (Path.GetFileName (ProjectFileName), ".tracktionedit"));
-			using (var sw = File.CreateText (outfile)) {
-				new EditModelWriter ().Write (sw, edit);
-				OutputEditFileName = outfile;
-			}
-		}
-
-		static IEnumerable<PluginElement> ToTracktion (IEnumerable<AugenePluginSpecifier> src)
-		{
-			return src.Select (a => new PluginElement {
-				Filename = a.Filename,
-				Enabled = true,
-				Uid = a.Uid,
-				Type = a.Type ?? "vst",
-				Name = a.Name,
-				Manufacturer = a.Manufacturer,
-				State = a.State,
-			});
-		}
-		
 		const string ConfigXmlFile = "augene-config.xml";
 		
 		public AugeneProject Project { get; set; }
 		public string ProjectFileName { get; set; }
 		
 		public string OutputEditFileName { get; set; }
-		
+
 		public string ConfigAudioPluginHostPath { get; set; }
-		public string AugenePlayerPath { get; set; }
+
+		public string ConfigAugenePlayerPath { get; set; }
+
+		public string LastProjectFile { get; set; }
 
 		public DialogAbstraction Dialogs { get; set; }
 
@@ -107,11 +57,26 @@ namespace Augene {
 					using (var file = fs.OpenFile (ConfigXmlFile, FileMode.Open)) {
 						using (var xr = XmlReader.Create (file)) {
 							xr.MoveToContent ();
+							if (xr.IsEmptyElement)
+								return;
 							xr.ReadStartElement ("config");
-							AugenePlayerPath =
-								xr.ReadElementString ("AugenePlayer");
-							ConfigAudioPluginHostPath =
-								xr.ReadElementString ("AudioPluginHost");
+							for (xr.MoveToContent ();
+								xr.NodeType == XmlNodeType.Element;
+								xr.MoveToContent ()) {
+								string name = xr.LocalName;
+								string s = xr.ReadElementContentAsString ();
+								switch (name) {
+								case "AugenePlayer":
+									ConfigAugenePlayerPath = s;
+									break;
+								case "AudioPluginHost":
+									ConfigAudioPluginHostPath = s;
+									break;
+								case "LastProjectFile":
+									LastProjectFile = s;
+									break;
+								}
+							}
 						}
 					}
 				} catch (Exception ex) {
@@ -121,6 +86,7 @@ namespace Augene {
 			}
 		}
 
+		
 		public void SaveConfiguration ()
 		{
 			using (var fs = IsolatedStorageFile.GetUserStoreForAssembly ()) {
@@ -128,9 +94,11 @@ namespace Augene {
 					using (var xw = XmlWriter.Create (file)) {
 						xw.WriteStartElement ("config");
 						xw.WriteElementString ("AugenePlayer",
-							AugenePlayerPath);
+							ConfigAugenePlayerPath);
 						xw.WriteElementString ("AudioPluginHost",
 							ConfigAudioPluginHostPath);
+						xw.WriteElementString ("LastProjectFile",
+							LastProjectFile);
 					}
 				}
 			}
@@ -154,9 +122,18 @@ namespace Augene {
 		public void ProcessOpenProject ()
 		{
 			var files = Dialogs.ShowOpenFileDialog ("Open Augene Project");
-			if (files.Any ())
-			Project = AugeneProject.Load (files [0]);
-			ProjectFileName = files [0];
+			if (files.Any ()) {
+				ProcessLoadProjectFile (files[0]);
+			}
+		}
+
+		public void ProcessLoadProjectFile (string file)
+		{
+			Project = AugeneProject.Load (file);
+			ProjectFileName = file;
+			LastProjectFile = ProjectFileName;
+			// FIXME: it is kind of hack, but so far we unify history with config.
+			SaveConfiguration ();
 
 			RefreshRequested?.Invoke ();
 		}
@@ -252,19 +229,71 @@ namespace Augene {
 			if (ProjectFileName != null)
 				Compile ();
 		}
+		
+		public void Compile ()
+		{
+			if (ProjectFileName == null)
+				throw new InvalidOperationException ("To compile the project, ProjectFileName must be specified in prior");
+			Func<string, string> abspath = src => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), src);
+			var compiler = new MmlCompiler ();
+			var mmlFilesAbs = Project.MmlFiles.Select (_ => abspath (_)).ToArray ();
+			var mmls = mmlFilesAbs.Select (f => new MmlInputSource (f, new StringReader (File.ReadAllText (f))))
+				.Concat (Project.MmlStrings.Select (s =>
+					new MmlInputSource ("(no file)", new StringReader (s))));
+			var music = compiler.Compile (false, mmls.ToArray ());
+			var converter = new MidiToTracktionEditConverter ();
+			var edit = new EditElement ();
+			converter.ImportMusic (new MidiImportContext (music, edit));
+			var dstTracks = edit.Tracks.OfType<TrackElement> ().ToArray ();
+			for (int n = 0; n < dstTracks.Length; n++)
+				if (edit.Tracks [n].Id == null)
+					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
+			foreach (var track in Project.Tracks) {
+				var dstTrack = dstTracks.FirstOrDefault (t =>
+					t.Id == track.Id.ToString (CultureInfo.CurrentCulture));
+				if (dstTrack == null)
+					continue;
+				var existingPlugins = dstTrack.Plugins.ToArray ();
+				dstTrack.Plugins.Clear ();
+				foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
+					AudioGraph.Load (XmlReader.Create (abspath (track.AudioGraph))))))
+					dstTrack.Plugins.Add (p);
+				// recover volume and level at the end.
+				foreach (var p in existingPlugins)
+					dstTrack.Plugins.Add (p);
+			}
+
+			string outfile = OutputEditFileName ?? abspath (Path.ChangeExtension (Path.GetFileName (ProjectFileName), ".tracktionedit"));
+			using (var sw = File.CreateText (outfile)) {
+				new EditModelWriter ().Write (sw, edit);
+				OutputEditFileName = outfile;
+			}
+		}
+
+		static IEnumerable<PluginElement> ToTracktion (IEnumerable<AugenePluginSpecifier> src)
+		{
+			return src.Select (a => new PluginElement {
+				Filename = a.Filename,
+				Enabled = true,
+				Uid = a.Uid,
+				Type = a.Type ?? "vst",
+				Name = a.Name,
+				Manufacturer = a.Manufacturer,
+				State = a.State,
+			});
+		}
 
 		public void ProcessPlay ()
 		{
-			if (string.IsNullOrWhiteSpace (AugenePlayerPath))
+			if (string.IsNullOrWhiteSpace (ConfigAugenePlayerPath))
 				Dialogs.ShowWarning ("augene-player path is not configured [File > Configure].");
 			else {
 				ProcessCompile ();
 				if (OutputEditFileName != null)
-					Process.Start (AugenePlayerPath, ProjectFileName);
+					Process.Start (ConfigAugenePlayerPath, ProjectFileName);
 			}
 		}
-		
-		
+
 		public void OpenFileOrContainingFolder (string fullPath)
 		{
 			if (Environment.OSVersion.Platform == PlatformID.Unix) {

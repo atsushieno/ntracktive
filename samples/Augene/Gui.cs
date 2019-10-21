@@ -64,13 +64,16 @@ namespace Augene
 			Width = 400;
 			Height = 400;
 			Closed += (o, e) => Application.Exit ();
+			
+			SetupMainMenu ();
+			InitializeContent ();
 
 			this.model = model;
 			model.Dialogs = new XwtDialogs ();
 			model.RefreshRequested += ResetContent;
 			model.LoadConfiguration ();
-			SetupMainMenu ();
-			InitializeContent ();
+			if (!string.IsNullOrWhiteSpace (model.LastProjectFile))
+				model.ProcessLoadProjectFile (model.LastProjectFile);
 		}
 
 		class XwtDialogs : DialogAbstraction
@@ -255,7 +258,7 @@ namespace Augene
 			dlg.Height = 150;
 			var vbox = new VBox ();
 			dlg.Content = vbox;
-			var pentry = new TextEntry { Text = model.AugenePlayerPath };
+			var pentry = new TextEntry { Text = model.ConfigAugenePlayerPath };
 			var aentry = new TextEntry { Text = model.ConfigAudioPluginHostPath };
 			Action<string, TextEntry> f = (label, entry) => {
 				var box = new HBox ();
@@ -283,7 +286,7 @@ namespace Augene
 			hcommit.PackEnd (ok);
 			if (dlg.Run () == Command.Cancel)
 				return;
-			model.AugenePlayerPath = pentry.Text;
+			model.ConfigAugenePlayerPath = pentry.Text;
 			model.ConfigAudioPluginHostPath = aentry.Text;
 			
 			model.SaveConfiguration ();
