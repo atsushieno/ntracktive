@@ -54,6 +54,7 @@ namespace Augene
 			}
 		}
 		
+		[STAThread]
 		public static void Main (string [] args)
 		{
 			bool gui = false;
