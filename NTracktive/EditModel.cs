@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -38,7 +38,6 @@ namespace NTracktive
 		public const int CAf = 0x1000 + 7;
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
 	public class DataTypeAttribute : Attribute
 	{
 		public DataTypeAttribute (DataType type)
@@ -49,7 +48,7 @@ namespace NTracktive
 		public DataType DataType { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class EditElement
 	{
 		// attributes
@@ -97,7 +96,7 @@ namespace NTracktive
 		public IList<AbstractTrackElement> Tracks { get; private set; } = new List<AbstractTrackElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TransportElement
 	{
 		public double? Position { get; set; }
@@ -106,7 +105,7 @@ namespace NTracktive
 		public double? LoopPoint2 { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MacroParametersElement
 	{
 		public string Id { get; set; } // new
@@ -114,14 +113,14 @@ namespace NTracktive
 		public string MediaId { get; set; } // old
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TempoSequenceElement
 	{
 		public IList<TempoElement> Tempos { get; private set; } = new List<TempoElement> ();
 		public IList<TimeSigElement> TimeSignatures { get; private set; } = new List<TimeSigElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TempoElement
 	{
 		[DataType (DataType.Length)]
@@ -130,7 +129,7 @@ namespace NTracktive
 		public double Curve { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TimeSigElement
 	{
 		public int Numerator { get; set; }
@@ -139,13 +138,13 @@ namespace NTracktive
 		public double StartBeat { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class PitchSequenceElement
 	{
 		public IList<PitchElement> Pitches { get; private set; } = new List<PitchElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class PitchElement
 	{
 		// new
@@ -157,12 +156,12 @@ namespace NTracktive
 		public double Pitch { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class VideoElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ViewStateElement
 	{
 		// attributes
@@ -194,29 +193,29 @@ namespace NTracktive
 		public TrackEditorsElement TrackEditors { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TrackEditorsElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class FacePlateViewElement
 	{
 		public bool? EditModeActive { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class AutoMapXmlElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ClickTrackElement
 	{
 		public double Level { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class Id3VorbisMetadataElement
 	{
 		public double TrackNumber { get; set; }
@@ -224,7 +223,7 @@ namespace NTracktive
 		public string Date { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MasterVolumeElement
 	{
 		// new
@@ -233,17 +232,17 @@ namespace NTracktive
 		public IList<FilterElement> Filters { get; private set; } = new List<FilterElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class RackElementBase
 	{
 	}
 	
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class RackFiltersElement : RackElementBase
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class RacksElement : RackElementBase
 	{
 	}
@@ -252,41 +251,41 @@ namespace NTracktive
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MasterFiltersElement : MasterPluginsElementBase
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MasterPluginsElement : MasterPluginsElementBase
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class AuxBusNamesElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class InputDevicesElementBase
 	{
 		public IList<InputDeviceElement> InputDevices { get; private set; } = new List<InputDeviceElement> ();
 	}
 
 	// new
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class InputDevicesElement : InputDevicesElementBase
 	{		
 	}
 
 	// old
 	// I hope it is not the other casing...
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class DevicesExElement : InputDevicesElementBase
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class InputDeviceElement
 	{
 		public string Name { get; set; }
@@ -295,22 +294,22 @@ namespace NTracktive
 		public int TargetIndex { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TrackCompsElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class AraDocumentElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ControllerMappingsElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public abstract class AbstractViewElement
 	{
 		public double? Width { get; set; }
@@ -319,7 +318,7 @@ namespace NTracktive
 		public double? VisibleProportion { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public abstract class AbstractTrackElement : AbstractViewElement
 	{
 		public string Name { get; set; }
@@ -357,12 +356,12 @@ namespace NTracktive
 		public IList<AbstractTrackElement> Tracks { get; set; } = new List<AbstractTrackElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TempoTrackElement : AbstractTrackElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ModifiersElement
 	{
 		public IList<AbstractModifierElement> Modifiers { get; set; } = new List<AbstractModifierElement> ();
@@ -435,13 +434,13 @@ namespace NTracktive
 		public double Value { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MarkerTrackElement : AbstractTrackElement
 	{
 		public int TrackType { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class PluginElementBase
 	{
 		// attributes
@@ -474,23 +473,23 @@ namespace NTracktive
 		public FacePlateElement FacePlate { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class FilterElement : PluginElementBase
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class PluginElement : PluginElementBase
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ModifierAssignmentsElement
 	{
 		public IList<AbstractModifierElement> Modifiers { get; set; } = new List<AbstractModifierElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class FacePlateElement : AbstractViewElement
 	{
 		public bool AutoSize { get; set; }
@@ -525,12 +524,12 @@ namespace NTracktive
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ChordTrackElement : AbstractTrackElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class TrackElement : AbstractContentTrackElement
 	{
 		public double? MidiVProp { get; set; }
@@ -549,20 +548,20 @@ namespace NTracktive
 	}
 
 	// old
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ClipElement : MidiClipElementBase
 	{
 		public MidiSequenceElement MidiSequence { get; set; }
 	}
 
 	// new
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MidiClipElement : MidiClipElementBase
 	{
 		public SequenceElement Sequence { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public abstract class MidiClipElementBase : ClipElementBase
 	{
 		public string Type { get; set; }
@@ -575,7 +574,7 @@ namespace NTracktive
 		public bool SendBankChange { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public abstract class ClipElementBase
 	{
 		// attributes
@@ -650,13 +649,13 @@ namespace NTracktive
 	}
 
 	// new
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class SequenceElement : SequenceElemntBase
 	{
 	}
 
 	// old
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MidiSequenceElement : SequenceElemntBase
 	{
 	}
@@ -668,14 +667,14 @@ namespace NTracktive
 		public IList<AbstractMidiEventElement> Events { get; private set; } = new List<AbstractMidiEventElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public abstract class AbstractMidiEventElement
 	{
 		[DataType (DataType.Length)]
 		public double B { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ControlElement : AbstractMidiEventElement
 	{
 		public int Type { get; set; }
@@ -683,7 +682,7 @@ namespace NTracktive
 		public int? Metadata { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class NoteElement : AbstractMidiEventElement
 	{
 		public int P { get; set; }
@@ -696,7 +695,7 @@ namespace NTracktive
 		public double? InitialPitchbend { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class SysexElement : AbstractMidiEventElement
 	{
 		[DataType (DataType.Length)]
@@ -705,43 +704,43 @@ namespace NTracktive
 		public byte [] Data { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class QuantisationElement
 	{
 		public string Type { get; set; }
 		public double? Amount { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class GrooveElement
 	{
 		public string Current { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class PatternGeneratorElement
 	{
 		public ProgressionElement Progression { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ProgressionElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class OutputDevicesElement
 	{
 		public IList<DeviceElement> OutputDevices { get; private set; } = new List<DeviceElement> ();
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class DeviceElement
 	{
 		public string Name { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MidiViewStateElement : AbstractViewElement
 	{
 		[DataType (DataType.Length)]
@@ -750,13 +749,13 @@ namespace NTracktive
 		public double RightTime { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class ArrangeViewElement
 	{
 		public MixerViewStateElement MixerViewState { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class MixerViewStateElement
 	{
 		[DataType (DataType.BooleanInt)]
@@ -773,12 +772,12 @@ namespace NTracktive
 		public bool PluginsVisible { get; set; }
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class EditMixGroupsElement
 	{
 	}
 
-	[StructLayout (LayoutKind.Sequential)]
+
 	public class AudioEditingElement
 	{
 	}
