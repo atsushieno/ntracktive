@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AugeneProject xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <MasterPlugins>
+    <AudioGraph>sample.master.filtergraph</AudioGraph>
+  </MasterPlugins>
   <Tracks>
     <AugeneTrack>
       <Id>1</Id>
