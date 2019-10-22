@@ -61,7 +61,7 @@ namespace Augene
 		public AugeneWindow (AugeneModel model)
 		{
 			Title = "Augene Project Tool";
-			Width = 400;
+			Width = 600;
 			Height = 400;
 			Closed += (o, e) => Application.Exit ();
 			
@@ -207,7 +207,57 @@ namespace Augene
 			mmlFileBox.PackStart (mmlFileListView, true);
 			
 			hbox.PackStart (mmlFileBox, true);
+			
+			var masterPluginListBox = new VBox ();
 
+			masterPluginListView = new ListView ();
+			var masterPluginListStore = new ListStore (masterPluginFileField);
+			masterPluginListView.Columns.Add ("Master plugins", masterPluginFileField);
+			masterPluginListView.DataSource = masterPluginListStore;
+			masterPluginListView.ButtonPressed += (o, e) => {
+				if (e.MultiplePress > 1 && masterPluginListView.SelectedRows.Length == 1) {
+					model.ProcessLaunchAudioPluginHost (GetSelectedMasterPluginFilePath ());
+				}
+				if (e.Button == PointerButton.Right) {
+					var contextMenu = new Menu ();
+					
+					var newItem = new MenuItem("New master plugin");
+					newItem.Clicked += delegate { model.ProcessNewMasterPluginFile (false); };
+					contextMenu.Items.Add (newItem);
+
+					var addExisting = new MenuItem("Add existing AudioGraph as master plugin");
+					addExisting.Clicked += delegate { model.ProcessNewMasterPluginFile (true); };
+					contextMenu.Items.Add (addExisting);
+
+					var openFile = new MenuItem("Open master plugin"); // same as double click
+					openFile.Clicked += delegate { model.ProcessLaunchAudioPluginHost (GetSelectedMasterPluginFilePath ()); };
+					openFile.Sensitive = masterPluginListView.SelectedRows.Length == 1;
+					contextMenu.Items.Add (openFile);
+
+					var openContaininfFolder = new MenuItem("Open containing folder");
+					openContaininfFolder.Clicked += delegate { model.OpenFileOrContainingFolder (Path.GetDirectoryName (GetSelectedMasterPluginFilePath ())); };
+					openContaininfFolder.Sensitive = masterPluginListView.SelectedRows.Length == 1;
+					contextMenu.Items.Add (openContaininfFolder);
+					
+					var unregister = new MenuItem("Remove selected master plugin(s) from project");
+					unregister.Clicked += delegate { UnregisterSelectedMasterPluginFiles (); };
+					unregister.Sensitive = masterPluginListView.SelectedRows.Any ();
+					contextMenu.Items.Add (unregister);
+
+					contextMenu.Popup ();
+				}
+			};
+			masterPluginListView.KeyPressed += (o, e) => {
+				if (e.Key == Key.Delete || e.Key == Key.BackSpace) {
+					UnregisterSelectedMasterPluginFiles ();
+					e.Handled = true;
+				}
+			};
+			
+			masterPluginListBox.PackStart (masterPluginListView, true);
+			
+			hbox.PackStart (masterPluginListBox, true);
+			
 			Content = hbox;
 		}
 
@@ -217,6 +267,8 @@ namespace Augene
 			trackListStore.Clear ();
 			var mmlListStore = (ListStore) mmlFileListView.DataSource;
 			mmlListStore.Clear ();
+			var masterPluginListStore = (ListStore) masterPluginListView.DataSource;
+			masterPluginListStore.Clear ();
 			
 			foreach (var track in model.Project.Tracks) {
 				int idx = trackListStore.AddRow ();
@@ -226,6 +278,10 @@ namespace Augene
 			foreach (var mmlFile in model.Project.MmlFiles) {
 				int idx = mmlListStore.AddRow ();
 				mmlListStore.SetValue (idx, mmlFileField, mmlFile);
+			}
+			foreach (var masterPluginFile in model.Project.MasterPlugins) {
+				int idx = masterPluginListStore.AddRow ();
+				masterPluginListStore.SetValue (idx, masterPluginFileField, masterPluginFile);
 			}
 		}
 
@@ -249,6 +305,17 @@ namespace Augene
 				mmlFiles.Add (mmlListStore.GetValue (row, mmlFileField));
 
 			model.ProcessUnregisterMmlFiles (mmlFiles);
+		}
+
+		void UnregisterSelectedMasterPluginFiles ()
+		{
+			var masterPluginListStore = (ListStore) masterPluginListView.DataSource;
+			var masterPluginFiles = new List<string> ();
+			int [] rows = (int []) masterPluginListView.SelectedRows.Clone ();
+			foreach (var row in rows.Reverse ())
+				masterPluginFiles.Add (masterPluginListStore.GetValue (row, masterPluginFileField));
+
+			model.ProcessUnregisterMasterPluginFiles (masterPluginFiles);
 		}
 
 		void ProcessConfigure ()
@@ -305,6 +372,13 @@ namespace Augene
 			return model.GetItemFileAbsolutePath (
 				(string) lv.DataSource.GetValue (lv.SelectedRow, trackAudioGraphField.Index));
 		}
+
+		string GetSelectedMasterPluginFilePath ()
+		{
+			var lv = masterPluginListView;
+			return model.GetItemFileAbsolutePath (
+				(string) lv.DataSource.GetValue (lv.SelectedRow, masterPluginFileField.Index));
+		}
 		
 		readonly AugeneModel model;
 		ListView trackListView;
@@ -312,5 +386,7 @@ namespace Augene
 		readonly DataField<string> trackAudioGraphField = new DataField<string> ();
 		ListView mmlFileListView;
 		readonly DataField<string> mmlFileField = new DataField<string> ();
+		private ListView masterPluginListView;
+		readonly DataField<string> masterPluginFileField = new DataField<string> ();
 	}
 }

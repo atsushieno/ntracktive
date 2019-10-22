@@ -222,6 +222,36 @@ namespace Augene {
 			}
 		}
 
+		public void ProcessNewMasterPluginFile (bool selectFileInsteadOfNewFile)
+		{
+			if (selectFileInsteadOfNewFile) {
+				var files = Dialogs.ShowOpenFileDialog ("Select existing AudioGraph file as a master plugin");
+				if (files.Any ())
+					AddNewMasterPluginFile (files [0]);
+			} else {
+				var files = Dialogs.ShowSaveFileDialog ("New AudioGraph file as a master plugin");
+				if (files.Any ()) {
+					File.WriteAllText (files [0], AudioGraph.EmptyAudioGraph);
+					AddNewMasterPluginFile (files [0]);
+				}
+			}
+		}
+		public void AddNewMasterPluginFile (string filename)
+		{
+			Project.MasterPlugins.Add (GetItemFileRelativePath (filename));
+			
+			RefreshRequested?.Invoke ();
+		}
+
+		public void ProcessUnregisterMasterPluginFiles (IEnumerable<string> filesToUnregister)
+		{
+			var filesRemaining = Project.MasterPlugins.Where (f => !filesToUnregister.Contains (f)).ToArray ();
+			Project.MasterPlugins.Clear ();
+			Project.MasterPlugins.AddRange (filesRemaining);
+
+			RefreshRequested?.Invoke ();
+		}
+
 		public void ProcessCompile ()
 		{
 			if (ProjectFileName == null)
@@ -262,6 +292,10 @@ namespace Augene {
 				foreach (var p in existingPlugins)
 					dstTrack.Plugins.Add (p);
 			}
+			foreach (var masterPlugin in Project.MasterPlugins)
+				foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
+					AudioGraph.Load (XmlReader.Create (abspath (masterPlugin))))))
+					edit.MasterPlugins.Add (p);
 
 			string outfile = OutputEditFileName ?? abspath (Path.ChangeExtension (Path.GetFileName (ProjectFileName), ".tracktionedit"));
 			using (var sw = File.CreateText (outfile)) {

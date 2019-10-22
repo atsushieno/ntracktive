@@ -27,7 +27,8 @@ namespace Augene {
 			using (var tw = File.CreateText (filename))
 				serializer.Serialize (tw, project);
 		}
-
+		
+		[XmlArrayItem ("AudioGraph")] public List<string> MasterPlugins { get; set; } = new List<string> ();
 		public List<AugeneTrack> Tracks { get; set; } = new List<AugeneTrack> ();
 		[XmlArrayItem ("MmlFile")] public List<string> MmlFiles { get; set; } = new List<string> ();
 		[XmlArrayItem ("MmlString")] public List<string> MmlStrings { get; set; } = new List<string> ();
