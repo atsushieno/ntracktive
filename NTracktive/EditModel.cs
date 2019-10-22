@@ -77,9 +77,9 @@ namespace NTracktive
 		// old
 		public RackFiltersElement RackFilters { get; set; }
 		// new
-		public MasterPluginsElement MasterPlugins { get; set; }
+		public IList<PluginElement> MasterPlugins { get; private set; } = new List<PluginElement> ();
 		// old
-		public MasterFiltersElement MasterFilters { get; set; }
+		public IList<FilterElement> MasterFilters { get; private set; } = new List<FilterElement> ();
 		public AuxBusNamesElement AuxBusNames { get; set; }
 		// new
 		public InputDevicesElement InputDevices { get; set; }

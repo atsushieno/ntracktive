@@ -54,7 +54,6 @@ namespace NTracktive
 					 },
 				},
 				Racks = new RacksElement (),
-				MasterPlugins = new MasterPluginsElement (),
 				AuxBusNames = new AuxBusNamesElement (),
 				InputDevices = new InputDevicesElement (),
 				TrackComps = new TrackCompsElement (),
