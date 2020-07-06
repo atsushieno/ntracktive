@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
     <RootNamespace>Mugentrackted</RootNamespace>
+    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="managed-midi" Version="1.9.9" />
