@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+#nullable enable
 
 /*
  * Naming rules:
@@ -52,46 +53,46 @@ namespace NTracktive
 	public class EditElement
 	{
 		// attributes
-		public string ProjectID { get; set; }
-		public string AppVersion { get; set; }
+		public string? ProjectID { get; set; }
+		public string? AppVersion { get; set; }
 		[DataType (DataType.UnixTime)]
 		public long CreationTime { get; set; }
-		public string ModifiedBy { get; set; }
+		public string? ModifiedBy { get; set; }
 		[DataType (DataType.Id)]
-		public string MediaId { get; set; }
-		public string LastSignificantChange { get; set; }
+		public string? MediaId { get; set; }
+		public string? LastSignificantChange { get; set; }
 
 		// elements
-		public TransportElement Transport { get; set; }
-		public MacroParametersElement MacroParameters { get; set; }
-		public TempoSequenceElement TempoSequence { get; set; }
-		public PitchSequenceElement PitchSequence { get; set; }
-		public VideoElement Video { get; set; }
-		public ViewStateElement ViewState { get; set; }
-		public AutoMapXmlElement AutoMapXml { get; set; }
-		public ClickTrackElement ClickTrack { get; set; }
-		public Id3VorbisMetadataElement Id3VorbisMetadata { get; set; }
-		public MasterVolumeElement MasterVolume { get; set; }
+		public TransportElement? Transport { get; set; }
+		public MacroParametersElement? MacroParameters { get; set; }
+		public TempoSequenceElement? TempoSequence { get; set; }
+		public PitchSequenceElement? PitchSequence { get; set; }
+		public VideoElement? Video { get; set; }
+		public ViewStateElement? ViewState { get; set; }
+		public AutoMapXmlElement? AutoMapXml { get; set; }
+		public ClickTrackElement? ClickTrack { get; set; }
+		public Id3VorbisMetadataElement? Id3VorbisMetadata { get; set; }
+		public MasterVolumeElement? MasterVolume { get; set; }
 		// new
-		public RacksElement Racks { get; set; }
+		public RacksElement? Racks { get; set; }
 		// old
-		public RackFiltersElement RackFilters { get; set; }
+		public RackFiltersElement? RackFilters { get; set; }
 		// new
 		public IList<PluginElement> MasterPlugins { get; private set; } = new List<PluginElement> ();
 		// old
 		public IList<FilterElement> MasterFilters { get; private set; } = new List<FilterElement> ();
-		public AuxBusNamesElement AuxBusNames { get; set; }
+		public AuxBusNamesElement? AuxBusNames { get; set; }
 		// new
-		public InputDevicesElement InputDevices { get; set; }
+		public InputDevicesElement? InputDevices { get; set; }
 		// old
-		public DevicesExElement DevicesEx { get; set; }
-		public TrackCompsElement TrackComps { get; set; }
-		public AraDocumentElement AraDocument { get; set; }
-		public ControllerMappingsElement ControllerMappings { get; set; }
-		public EditMixGroupsElement EditMixGroups { get; set; }
-		public AudioEditingElement AudioEditing { get; set; }
-		public MidiViewStateElement MidiViewState { get; set; }
-		public ArrangeViewElement ArrangeView { get; set; }
+		public DevicesExElement? DevicesEx { get; set; }
+		public TrackCompsElement? TrackComps { get; set; }
+		public AraDocumentElement? AraDocument { get; set; }
+		public ControllerMappingsElement? ControllerMappings { get; set; }
+		public EditMixGroupsElement? EditMixGroups { get; set; }
+		public AudioEditingElement? AudioEditing { get; set; }
+		public MidiViewStateElement? MidiViewState { get; set; }
+		public ArrangeViewElement? ArrangeView { get; set; }
 
 		public IList<AbstractTrackElement> Tracks { get; private set; } = new List<AbstractTrackElement> ();
 	}
@@ -108,9 +109,9 @@ namespace NTracktive
 
 	public class MacroParametersElement
 	{
-		public string Id { get; set; } // new
+		public string? Id { get; set; } // new
 		[DataType (DataType.Id)]
-		public string MediaId { get; set; } // old
+		public string? MediaId { get; set; } // old
 	}
 
 
@@ -167,11 +168,11 @@ namespace NTracktive
 		// attributes
 		public bool MinimalTransportBar { get; set; }
 		public bool ScrollWhenPlaying { get; set; }
-		public string HiddenClips { get; set; }
-		public string LockedClips { get; set; }
-		public string EnabledTrackTags { get; set; }
-		public string DisabledSearchLibraries { get; set; }
-		public string CurrentSidePanel { get; set; }
+		public string? HiddenClips { get; set; }
+		public string? LockedClips { get; set; }
+		public string? EnabledTrackTags { get; set; }
+		public string? DisabledSearchLibraries { get; set; }
+		public string? CurrentSidePanel { get; set; }
 		[DataType (DataType.Length)]
 		public double MarkIn { get; set; }
 		[DataType (DataType.Length)]
@@ -189,8 +190,8 @@ namespace NTracktive
 		public bool MixerPanelShown { get; set; }
 		public double MidiEditorHeight { get; set; }
 		// elements
-		public FacePlateViewElement FacePlateView { get; set; }
-		public TrackEditorsElement TrackEditors { get; set; }
+		public FacePlateViewElement? FacePlateView { get; set; }
+		public TrackEditorsElement? TrackEditors { get; set; }
 	}
 
 
@@ -220,7 +221,7 @@ namespace NTracktive
 	{
 		public double TrackNumber { get; set; }
 		[DataType (DataType.UnixTime)]
-		public string Date { get; set; }
+		public string? Date { get; set; }
 	}
 
 
@@ -288,9 +289,9 @@ namespace NTracktive
 
 	public class InputDeviceElement
 	{
-		public string Name { get; set; }
+		public string? Name { get; set; }
 		[DataType (DataType.Id)]
-		public string TargetTrack { get; set; }
+		public string? TargetTrack { get; set; }
 		public int TargetIndex { get; set; }
 	}
 
@@ -321,15 +322,15 @@ namespace NTracktive
 
 	public abstract class AbstractTrackElement : AbstractViewElement
 	{
-		public string Name { get; set; }
+		public string? Name { get; set; }
 		// new
-		public string Id { get; set; }
+		public string? Id { get; set; }
 		// old
 		[DataType (DataType.Id)]
-		public string MediaId { get; set; }
+		public string? MediaId { get; set; }
 
-		public MacroParametersElement MacroParameters { get; set; }
-		public ModifiersElement Modifiers { get; set; }
+		public MacroParametersElement? MacroParameters { get; set; }
+		public ModifiersElement? Modifiers { get; set; }
 	}
 
 	public abstract class AbstractContentTrackElement : AbstractTrackElement
@@ -343,7 +344,7 @@ namespace NTracktive
 
 	public class AutomationTrackElement : AbstractTrackElement
 	{
-		public string Colour { get; set; }
+		public string? Colour { get; set; }
 		public int? CurrentAutoParamPluginID { get; set; }
 		public int? CurrentAutoParamTag { get; set; }
 	}
@@ -371,18 +372,18 @@ namespace NTracktive
 	public abstract class AbstractModifierElement
 	{
 		// definitions
-		public string Id { get; set; }
+		public string? Id { get; set; }
 		public bool RemapOnTempoChange { get; set; }
-		public string Colour { get; set; }
-		public string Base64_Parameters { get; set; }
+		public string? Colour { get; set; }
+		public string? Base64_Parameters { get; set; }
 
 		// uses
 		public int? Source { get; set; }
-		public string ParamID { get; set; }
+		public string? ParamID { get; set; }
 		public double? Value { get; set; }
 		
 		// definitions
-		public ModifierAssignmentsElement ModifierAssignments { get; set; }
+		public ModifierAssignmentsElement? ModifierAssignments { get; set; }
 	}
 
 	public class LFOElement : AbstractModifierElement
@@ -420,7 +421,7 @@ namespace NTracktive
 
 	public class MidiTrackerElement : AbstractModifierElement
 	{
-		public NodesElement Nodes { get; set; }
+		public NodesElement? Nodes { get; set; }
 	}
 	
 	public class NodesElement
@@ -444,20 +445,20 @@ namespace NTracktive
 	public class PluginElementBase
 	{
 		// attributes
-		public string Type { get; set; }
+		public string? Type { get; set; }
 		[DataType (DataType.Id)]
-		public string Uid { get; set; }
-		public string Filename { get; set; }
-		public string Name { get; set; }
-		public string Manufacturer { get; set; }
+		public string? Uid { get; set; }
+		public string? Filename { get; set; }
+		public string? Name { get; set; }
+		public string? Manufacturer { get; set; }
 		[DataType (DataType.Id)]
-		public string Id { get; set; }
+		public string? Id { get; set; }
 		public bool Enabled { get; set; }
 		public int ProgramNum { get; set; }
 		[DataType (DataType.Base64Binary)]
-		public string State { get; set; }
+		public string? State { get; set; }
 		[DataType (DataType.Base64Binary)]
-		public string Base64_Layout { get; set; }
+		public string? Base64_Layout { get; set; }
 		public double Volume { get; set; }
 		public double? WindowX { get; set; }
 		public double? WindowY { get; set; }
@@ -465,12 +466,12 @@ namespace NTracktive
 		public bool? RemapOnTempoChange { get; set; }
 		public double? Dry { get; set; }
 		[DataType (DataType.Base64Binary)]
-		public string Base64_Parameters { get; set; }
+		public string? Base64_Parameters { get; set; }
 
 		// elements
-		public MacroParametersElement MacroParameters { get; set; }
-		public ModifierAssignmentsElement ModifierAssignments { get; set; }
-		public FacePlateElement FacePlate { get; set; }
+		public MacroParametersElement? MacroParameters { get; set; }
+		public ModifierAssignmentsElement? ModifierAssignments { get; set; }
+		public FacePlateElement? FacePlate { get; set; }
 	}
 
 
@@ -495,16 +496,16 @@ namespace NTracktive
 		public bool AutoSize { get; set; }
 		public bool? AssignEnabled { get; set; }
 
-		public BackgroundElement Background { get; set; }
+		public BackgroundElement? Background { get; set; }
 		public IList<FacePlateContentBase> Contents { get; set; } = new List<FacePlateContentBase> ();
 	}
 
 	public abstract class FacePlateContentBase
 	{
 		// HACK: it should be IList<int>
-		public string Bounds { get; set; }
+		public string? Bounds { get; set; }
 		// HACK: it should be IList<int>
-		public string ParameterIDs { get; set; }
+		public string? ParameterIDs { get; set; }
 	}
 
 	public class BackgroundElement
@@ -534,13 +535,13 @@ namespace NTracktive
 	{
 		public double? MidiVProp { get; set; }
 		public double? MidiVOffset { get; set; }
-		public string Colour { get; set; }
+		public string? Colour { get; set; }
 		public bool? Solo { get; set; }
 		public bool? Mute { get; set; }
 
 		public IList<ClipElementBase> Clips { get; private set; } = new List<ClipElementBase> ();
-		public OutputDevicesElement OutputDevices { get; set; }
-		public TrackSnapshotsElement TrackSnapshots { get; set; }
+		public OutputDevicesElement? OutputDevices { get; set; }
+		public TrackSnapshotsElement? TrackSnapshots { get; set; }
 	}
 
 	public class TrackSnapshotsElement
@@ -551,20 +552,20 @@ namespace NTracktive
 
 	public class ClipElement : MidiClipElementBase
 	{
-		public MidiSequenceElement MidiSequence { get; set; }
+		public MidiSequenceElement? MidiSequence { get; set; }
 	}
 
 	// new
 
 	public class MidiClipElement : MidiClipElementBase
 	{
-		public SequenceElement Sequence { get; set; }
+		public SequenceElement? Sequence { get; set; }
 	}
 
 
 	public abstract class MidiClipElementBase : ClipElementBase
 	{
-		public string Type { get; set; }
+		public string? Type { get; set; }
 		public double? Sync { get; set; }
 		public bool ShowingTakes { get; set; }
 		public bool MpeMode { get; set; }
@@ -579,7 +580,7 @@ namespace NTracktive
 	{
 		// attributes
 		public int Channel { get; set; }
-		public string Name { get; set; }
+		public string? Name { get; set; }
 		[DataType (DataType.Length)]
 		public double Start { get; set; }
 		[DataType (DataType.Length)]
@@ -587,13 +588,13 @@ namespace NTracktive
 		[DataType (DataType.Length)]
 		public double Offset { get; set; }
 		[DataType (DataType.Id)]
-		public string Source { get; set; }
+		public string? Source { get; set; }
 		// new
-		public string Id { get; set; }
+		public string? Id { get; set; }
 		// old
 		[DataType (DataType.Id)]
-		public string MediaId { get; set; }
-		public string Colour { get; set; }
+		public string? MediaId { get; set; }
+		public string? Colour { get; set; }
 		public int CurrentTake { get; set; }
 		public double Speed { get; set; }
 		public bool Mute { get; set; }
@@ -602,17 +603,17 @@ namespace NTracktive
 		public double? LoopLengthBeats { get; set; }
 
 		// elements
-		public QuantisationElement Quantisation { get; set; }
-		public GrooveElement Groove { get; set; }
-		public PatternGeneratorElement PatternGenerator { get; set; }
+		public QuantisationElement? Quantisation { get; set; }
+		public GrooveElement? Groove { get; set; }
+		public PatternGeneratorElement? PatternGenerator { get; set; }
 	}
 
 	public class StepClipElement : ClipElementBase
 	{
 		public double Sequence { get; set; }
 		
-		public ChannelsElement Channels { get; set; }
-		public PatternsElement Patterns { get; set; }
+		public ChannelsElement? Channels { get; set; }
+		public PatternsElement? Patterns { get; set; }
 	}
 
 	public class ChannelsElement
@@ -628,12 +629,12 @@ namespace NTracktive
 		public int Channel { get; set; }
 		public int Note { get; set; }
 		public int Velocity { get; set; }
-		public string Name { get; set; }
+		public string? Name { get; set; }
 		// for PatternElement
 		// HACK: they should all be arrays.
-		public string Pattern { get; set; } // "1000101010001000"...
-		public string Velocities { get; set; }
-		public string Gates { get; set; }
+		public string? Pattern { get; set; } // "1000101010001000"...
+		public string? Velocities { get; set; }
+		public string? Gates { get; set; }
 	}
 
 	public class PatternsElement
@@ -701,26 +702,26 @@ namespace NTracktive
 		[DataType (DataType.Length)]
 		public double Time { get; set; }
 		[DataType (DataType.HexBinary)]
-		public byte [] Data { get; set; }
+		public byte []? Data { get; set; }
 	}
 
 
 	public class QuantisationElement
 	{
-		public string Type { get; set; }
+		public string? Type { get; set; }
 		public double? Amount { get; set; }
 	}
 
 
 	public class GrooveElement
 	{
-		public string Current { get; set; }
+		public string? Current { get; set; }
 	}
 
 
 	public class PatternGeneratorElement
 	{
-		public ProgressionElement Progression { get; set; }
+		public ProgressionElement? Progression { get; set; }
 	}
 
 
@@ -737,7 +738,7 @@ namespace NTracktive
 
 	public class DeviceElement
 	{
-		public string Name { get; set; }
+		public string? Name { get; set; }
 	}
 
 
@@ -752,7 +753,7 @@ namespace NTracktive
 
 	public class ArrangeViewElement
 	{
-		public MixerViewStateElement MixerViewState { get; set; }
+		public MixerViewStateElement? MixerViewState { get; set; }
 	}
 
 

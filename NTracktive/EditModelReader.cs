@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 
+#nullable enable
+
 namespace NTracktive
 {
 	public class EditModelReader
@@ -20,7 +22,7 @@ namespace NTracktive
 				yield return byte.Parse (value.Substring (i, 2), System.Globalization.NumberStyles.HexNumber);
 		}
 
-		object GetTypedValue (PropertyInfo pi, string value, IXmlLineInfo li)
+		object? GetTypedValue (PropertyInfo pi, string value, IXmlLineInfo? li)
 		{
 			var dta = pi.GetCustomAttribute<DataTypeAttribute> ();
 			DataType type = DataType.Unknown;
@@ -34,7 +36,7 @@ namespace NTracktive
 				else if (type == DataType.HexBinary)
 					return ToHexBinary (value).ToArray ();
 				else
-					throw new XmlException ("Missing DataType attribute on byte array.", null, li.LineNumber, li.LinePosition);
+					throw new XmlException ("Missing DataType attribute on byte array.", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 			}
 
 			var nonNullableType = pi.PropertyType;
@@ -53,25 +55,25 @@ namespace NTracktive
 				case "1": return true;
 				case "0": return false;
 				}
-				throw new XmlException ("Invalid value for boolean", null, li.LineNumber, li.LinePosition);
+				throw new XmlException ("Invalid value for boolean", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 			case TypeCode.Double:
 				double d;
 				if (double.TryParse (value, out d))
 					return d;
-				throw new XmlException ("Invalid value for number", null, li.LineNumber, li.LinePosition);
+				throw new XmlException ("Invalid value for number", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 			case TypeCode.Int32:
 				int i;
 				if (int.TryParse (value, out i))
 					return i;
-				throw new XmlException ("Invalid value for int", null, li.LineNumber, li.LinePosition);
+				throw new XmlException ("Invalid value for int", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 			case TypeCode.Int64:
 				long l;
 				if (long.TryParse (value, NumberStyles.HexNumber, null, out l))
 					return l;
-				throw new XmlException ("Invalid value for long", null, li.LineNumber, li.LinePosition);
+				throw new XmlException ("Invalid value for long", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 			}
 
-			throw new XmlException ($"Unexpected data for {pi}", null, li.LineNumber, li.LinePosition);
+			throw new XmlException ($"Unexpected data for {pi}", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 		}
 
 		public EditElement Read (XmlReader reader)
@@ -88,7 +90,7 @@ namespace NTracktive
 				var typeName = reader.LocalName + "Element";
 				var type = GetType ().Assembly.GetTypes ().FirstOrDefault (t => string.Equals (t.Name, typeName, StringComparison.OrdinalIgnoreCase));
 				if (type == null)
-					throw new XmlException ($"Type {typeName} does not exist", null, li.LineNumber, li.LinePosition);
+					throw new XmlException ($"Type {typeName} does not exist", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 				var obj = Activator.CreateInstance (type);
 				if (reader.MoveToFirstAttribute ()) {
 					do {
@@ -99,7 +101,7 @@ namespace NTracktive
 						//var propName = (string.IsNullOrEmpty (reader.Prefix) ? "" : ToPascalCase (reader.Prefix) + '_') + ToPascalCase (reader.LocalName);
 						var prop = type.GetProperty (propName);
 						if (prop == null)
-							throw new XmlException ($"In {type}, property {propName} not found.", null, li.LineNumber, li.LinePosition);
+							throw new XmlException ($"In {type}, property {propName} not found.", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 						prop.SetValue (obj, GetTypedValue (prop, reader.Value, li));
 					} while (reader.MoveToNextAttribute ());
 				}
@@ -113,7 +115,7 @@ namespace NTracktive
 				reader.MoveToContent ();
 				while (reader.NodeType != XmlNodeType.EndElement) {
 					var propTypeName = reader.LocalName + "Element";
-					var prop = type.GetProperties ().FirstOrDefault (p => string.Equals (p.PropertyType.Name, propTypeName, StringComparison.OrdinalIgnoreCase));
+					PropertyInfo? prop = type.GetProperties ().FirstOrDefault (p => string.Equals (p.PropertyType.Name, propTypeName, StringComparison.OrdinalIgnoreCase));
 					if (prop != null)
 						prop.SetValue (obj, DoRead (reader));
 					else {
@@ -122,14 +124,14 @@ namespace NTracktive
 							.Select (p => new { Property = p, ItemType = p.PropertyType.GetGenericArguments () [0] })
 							.FirstOrDefault (m => m.ItemType.IsAssignableFrom(itemObj.GetType ())/*string.Equals (m.ItemType.Name, propTypeName, StringComparison.OrdinalIgnoreCase)*/)?.Property;
 						if (prop == null)
-							throw new XmlException ($"In {type}, property of collection of type {propTypeName} not found.", null, li.LineNumber, li.LinePosition);
+							throw new XmlException ($"In {type}, property of collection of type {propTypeName} not found.", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 						var propValue = prop.GetValue (obj);
 						if (propValue == null)
-							throw new XmlException ($"In {type}, property {prop} has null value unexpectedly.", null, li.LineNumber, li.LinePosition);
+							throw new XmlException ($"In {type}, property {prop} has null value unexpectedly.", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 						// IList<T> doesn't contain Add method, this is in the same dirty manner as the serializers.
 						var add = propValue.GetType ().GetMethods (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault (m => (m.Name == "Add" || m.Name.EndsWith (".Add")));
 						if (add == null)
-							throw new XmlException ($"In {type}, property {prop} has no Add method.", null, li.LineNumber, li.LinePosition);
+							throw new XmlException ($"In {type}, property {prop} has no Add method.", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 						add.Invoke (propValue, new object [] { itemObj });
 					}
 					reader.MoveToContent ();
@@ -137,7 +139,7 @@ namespace NTracktive
 				reader.ReadEndElement ();
 				return obj;
 			}
-			throw new XmlException ($"Unexpected XML content {reader.NodeType} {reader.Name}.", null, li.LineNumber, li.LinePosition);
+			throw new XmlException ($"Unexpected XML content {reader.NodeType} {reader.Name}.", null, li?.LineNumber ?? 0, li?.LinePosition ?? 0);
 		}
 	}
 }

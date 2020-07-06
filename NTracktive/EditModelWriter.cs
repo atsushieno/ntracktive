@@ -7,6 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 
+#nullable enable
+
 namespace NTracktive
 {
 	public class EditModelWriter
@@ -21,7 +23,7 @@ namespace NTracktive
 			return string.Concat (value.Select (v => v.ToString ("x02")));
 		}
 
-		static string ToValueString (PropertyInfo pi, object obj)
+		static string? ToValueString (PropertyInfo pi, object obj)
 		{
 			if (obj == null)
 				return null;
@@ -64,7 +66,7 @@ namespace NTracktive
 				Write (writer, o, null);
 		}
 
-		public void Write (XmlTextWriter writer, object o, PropertyInfo hintProperty)
+		public void Write (XmlTextWriter writer, object o, PropertyInfo? hintProperty)
 		{
 			if (o == null)
 				return;
@@ -91,7 +93,7 @@ namespace NTracktive
 				}
 				foreach (var prop in listProps) {
 					var list = prop.GetValue (o) as IEnumerable;
-					foreach (var item in list)
+					foreach (var item in list!)
 						Write (writer, item, prop);
 				}
 				writer.WriteEndElement ();
