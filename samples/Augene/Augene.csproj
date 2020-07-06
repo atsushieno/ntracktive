@@ -4,7 +4,7 @@
     <RootNamespace>Mugentrackted</RootNamespace>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="managed-midi" Version="1.9.14" />
