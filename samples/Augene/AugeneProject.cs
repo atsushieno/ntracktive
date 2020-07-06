@@ -37,7 +37,7 @@ namespace Augene {
 	public class AugeneTrack
 	{
 		public double Id { get; set; }
-		public string AudioGraph { get; set; }
+		public string? AudioGraph { get; set; }
 	}
 
 	public class AudioGraph
@@ -83,7 +83,7 @@ namespace Augene {
 			if (input == null || output == null)
 				yield break;
 			XElement conn;
-			for (string uid = input.Attribute ("uid")?.Value;
+			for (string? uid = input.Attribute ("uid")?.Value;
 				(conn = doc.Root.Elements ("CONNECTION").FirstOrDefault (e =>
 					e.Attribute ("srcFilter")?.Value == uid)) != null && conn != output;
 				uid = conn.Attribute ("dstFilter")?.Value) {
@@ -117,21 +117,21 @@ namespace Augene {
 		//<STATE>0.</STATE>
 		//
 		// For audio plugins there is something like `type="vst" ` too.
-		public string Name { get; set; }
-		public string DescriptiveName { get; set; }
-		public string Format { get; set; }
-		public string Category { get; set; }
-		public string Manufacturer { get; set; }
-		public string Version { get; set; }
-		public string File { get; set; }
-		public string Uid { get; set; }
+		public string? Name { get; set; }
+		public string? DescriptiveName { get; set; }
+		public string? Format { get; set; }
+		public string? Category { get; set; }
+		public string? Manufacturer { get; set; }
+		public string? Version { get; set; }
+		public string? File { get; set; }
+		public string? Uid { get; set; }
 		public int IsInstrument { get; set; }
 		public long FileTime { get; set; }
 		public long InfoUpdateTime { get; set; }
 		public int NumInputs { get; set; }
 		public int NumOutputs { get; set; }
 		public int IsShell { get; set; }
-		public string State { get; set; }
+		public string? State { get; set; }
 		public int ProgramNum { get; set; } // ?
 	}
 
@@ -151,12 +151,12 @@ namespace Augene {
 		}
 
 		// They are required by tracktionedit.
-		public string Type { get; set; }
-		public string Uid { get; set; }
-		public string Filename { get; set; }
-		public string Name { get; set; }
-		public string Manufacturer { get; set; }
+		public string? Type { get; set; }
+		public string? Uid { get; set; }
+		public string? Filename { get; set; }
+		public string? Name { get; set; }
+		public string? Manufacturer { get; set; }
 		public int ProgramNum { get; set; }
-		public string State { get; set; }
+		public string? State { get; set; }
 	}
 }

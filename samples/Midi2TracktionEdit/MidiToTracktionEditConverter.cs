@@ -16,13 +16,18 @@ namespace Midi2TracktionEdit
 		bool consumed;
 		MidiImportContext context;
 		MidiMessage [] global_markers = new MidiMessage [] { new MidiMessage (int.MaxValue, default (MidiEvent)), };
+
+		public MidiToTracktionEditConverter (MidiImportContext context)
+		{
+			this.context = context;
+		}
 		
 		public void Process (string [] args)
 		{
 			var argumentContext = GetContextFromCommandArguments (args);
-			var ic = argumentContext.CreateImportContext ();
-			ImportMusic (ic);
-			new EditModelWriter ().Write (Console.Out, ic.Edit);
+			context = argumentContext.CreateImportContext ();
+			ImportMusic ();
+			new EditModelWriter ().Write (Console.Out, context.Edit);
 		}
 
 		CommandArgumentContext GetContextFromCommandArguments (string [] args)
@@ -33,12 +38,12 @@ namespace Midi2TracktionEdit
 			return context;
 		}
 
-		public void ImportMusic (MidiImportContext context)
+		public void ImportMusic ()
 		{
 			if (consumed)
 				throw new InvalidOperationException ($"This instance is already used. Create another instance of {this.GetType ()} if you want to process more.");
-			this.context = context;
-			try {
+			consumed = true;
+			{
 				if (context.CleanupExistingTracks) {
 					context.Edit.Tracks.Clear ();
 					context.Edit.TempoSequence = null;
@@ -80,8 +85,6 @@ namespace Midi2TracktionEdit
 							{Name = "(default audio output)"});
 					}
 				}
-			} finally {
-				consumed = true;
 			}
 		}
 
@@ -100,8 +103,8 @@ namespace Midi2TracktionEdit
 			double currentClipStart = 0;
 			// they are explicitly assigned due to C# limitation of initialization check...
 			MidiMessage nextGlobalMarker = default (MidiMessage);
-			MidiClipElement clip = null; 
-			SequenceElement seq = null;
+			MidiClipElement? clip = null; 
+			SequenceElement seq = new SequenceElement (); // dummy, but it's easier to hush CS8602...
 			int currentTotalTime = 0;
 
 			Action terminateClip = () => {
@@ -109,7 +112,7 @@ namespace Midi2TracktionEdit
 					return;
 				clip.PatternGenerator = new PatternGeneratorElement ();
 				clip.PatternGenerator.Progression = new ProgressionElement ();
-				var e = seq.Events.OfType<AbstractMidiEventElement> ().LastOrDefault ();
+				var e = seq!.Events.OfType<AbstractMidiEventElement> ().LastOrDefault ();
 				if (e != null) {
 					var note = e as NoteElement;
 					var extend = note != null ? note.L : 0;
@@ -128,7 +131,7 @@ namespace Midi2TracktionEdit
 			Action nextClip = () => {
 				terminateClip ();
 				currentClipStart = ToTracktionBarSpec (nextGlobalMarker.DeltaTime);
-				string name = nextGlobalMarker.Event.ExtraData == null
+				string? name = nextGlobalMarker.Event.ExtraData == null
 					? null
 					: Encoding.UTF8.GetString (nextGlobalMarker.Event.ExtraData, nextGlobalMarker.Event.ExtraDataOffset, nextGlobalMarker.Event.ExtraDataLength);
 				clip = new MidiClipElement {Type = "midi", Speed = 1.0, Start = currentClipStart, Name = name};
@@ -142,7 +145,7 @@ namespace Midi2TracktionEdit
 
 			ttrack.Modifiers = new ModifiersElement ();
 			int [,] noteDeltaTimes = new int [16, 128];
-			NoteElement [,] notes = new NoteElement [16,128];
+			NoteElement? [,] notes = new NoteElement? [16,128];
 			int timeSigNumerator = 4, timeSigDenominator = 4;
 			double currentBpm = 120.0;
 
@@ -208,7 +211,7 @@ namespace Midi2TracktionEdit
 							break;
 						case MidiMetaType.Tempo:
 							currentBpm = ToBpm (msg.Event.ExtraData, msg.Event.ExtraDataOffset, msg.Event.ExtraDataLength);
-							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
+							context.Edit.TempoSequence?.Tempos.Add (new TempoElement {
 								StartBeat = ToTracktionBarSpec (currentTotalTime),
 								Curve = 1.0, Bpm = currentBpm
 							});
@@ -217,10 +220,10 @@ namespace Midi2TracktionEdit
 							var tsEv = msg.Event;
 							timeSigNumerator = tsEv.ExtraData [tsEv.ExtraDataOffset];
 							timeSigDenominator = (int) Math.Pow (2, tsEv.ExtraData [tsEv.ExtraDataOffset + 1]);
-							context.Edit.TempoSequence.TimeSignatures.Add (
+							context.Edit.TempoSequence?.TimeSignatures.Add (
 								new TimeSigElement { StartBeat = ToTracktionBarSpec (currentTotalTime), Numerator= timeSigNumerator, Denominator = timeSigDenominator });
 							// Tracktion engine has a problem that its tempo calculation goes fubar when timesig denomitator becomes non-4 value.
-							context.Edit.TempoSequence.Tempos.Add (new TempoElement {
+							context.Edit.TempoSequence?.Tempos.Add (new TempoElement {
 								StartBeat = ToTracktionBarSpec (currentTotalTime),
 								Curve = 1.0, Bpm = currentBpm / (timeSigDenominator / 4)
 							});
@@ -241,7 +244,7 @@ namespace Midi2TracktionEdit
 			return 60000000.0 / t;
 		}
 
-		string PopulateTrackName (MidiTrack track)
+		string? PopulateTrackName (MidiTrack track)
 		{
 			var tnEv = track.Messages.Select (m => m.Event).FirstOrDefault (e =>
 				e.EventType == MidiEvent.Meta && e.MetaType == MidiMetaType.TrackName);

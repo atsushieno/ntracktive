@@ -18,8 +18,8 @@ namespace Midi2TracktionEdit
 	{
 		public MidiImportContext (CommandArgumentContext commandArgumentContext)
 		{
-			Midi = LoadSmf (commandArgumentContext.MidiFile);
-			Edit = LoadEdit (commandArgumentContext.TracktionEditTemplateFile);
+			Midi = LoadSmf (commandArgumentContext.MidiFile!);
+			Edit = LoadEdit (commandArgumentContext.TracktionEditTemplateFile!);
 		}
 
 		public MidiImportContext (MidiMusic midi, EditElement edit)

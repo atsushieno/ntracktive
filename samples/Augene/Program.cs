@@ -58,7 +58,7 @@ namespace Augene
 		public static void Main (string [] args)
 		{
 			bool gui = false;
-			string audiopluginhost = null, augenePlayer = null;
+			string? audiopluginhost = null, augenePlayer = null;
 			new Mono.Options.OptionSet ()
 				.Add ("-gui", s => gui = true)
 				.Add ("-audiopluginhost=", s => audiopluginhost = s)
@@ -68,7 +68,7 @@ namespace Augene
 				ConfigAudioPluginHostPath = audiopluginhost,
 				ConfigAugenePlayerPath = augenePlayer
 			};
-			if (args.Contains ("-gui") || args.Contains ("--gui")) {
+			if (gui) {
 				GuiApplication.RunGui (model);
 				return;
 			}

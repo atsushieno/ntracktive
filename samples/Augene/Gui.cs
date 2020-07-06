@@ -73,7 +73,7 @@ namespace Augene
 			model.RefreshRequested += ResetContent;
 			model.LoadConfiguration ();
 			if (!string.IsNullOrWhiteSpace (model.LastProjectFile))
-				model.ProcessLoadProjectFile (model.LastProjectFile);
+				model.ProcessLoadProjectFile (model.LastProjectFile!);
 		}
 
 		class XwtDialogs : DialogAbstraction

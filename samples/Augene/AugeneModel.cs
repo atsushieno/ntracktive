@@ -35,16 +35,16 @@ namespace Augene {
 	{
 		const string ConfigXmlFile = "augene-config.xml";
 		
-		public AugeneProject Project { get; set; }
-		public string ProjectFileName { get; set; }
+		public AugeneProject Project { get; set; } = new AugeneProject ();
+		public string? ProjectFileName { get; set; }
 		
-		public string OutputEditFileName { get; set; }
+		public string? OutputEditFileName { get; set; }
 
-		public string ConfigAudioPluginHostPath { get; set; }
+		public string? ConfigAudioPluginHostPath { get; set; }
 
-		public string ConfigAugenePlayerPath { get; set; }
+		public string? ConfigAugenePlayerPath { get; set; }
 
-		public string LastProjectFile { get; set; }
+		public string? LastProjectFile { get; set; }
 
 		public DialogAbstraction Dialogs { get; set; }
 
@@ -104,13 +104,13 @@ namespace Augene {
 			}
 		}
 
-		public event Action RefreshRequested;
+		public event Action? RefreshRequested;
 
 		public string GetItemFileRelativePath (string itemFilename)
 		{
 			string filenameRelative = itemFilename;
 			if (ProjectFileName != null)
-				filenameRelative = new Uri (ProjectFileName).MakeRelative (new Uri (itemFilename));
+				filenameRelative = new Uri (ProjectFileName).MakeRelativeUri (new Uri (itemFilename)).ToString ();
 			return filenameRelative;
 		}
 
@@ -271,9 +271,9 @@ namespace Augene {
 				.Concat (Project.MmlStrings.Select (s =>
 					new MmlInputSource ("(no file)", new StringReader (s))));
 			var music = compiler.Compile (false, mmls.ToArray ());
-			var converter = new MidiToTracktionEditConverter ();
 			var edit = new EditElement ();
-			converter.ImportMusic (new MidiImportContext (music, edit));
+			var converter = new MidiToTracktionEditConverter (new MidiImportContext (music, edit));
+			converter.ImportMusic ();
 			var dstTracks = edit.Tracks.OfType<TrackElement> ().ToArray ();
 			for (int n = 0; n < dstTracks.Length; n++)
 				if (edit.Tracks [n].Id == null)
@@ -285,9 +285,10 @@ namespace Augene {
 					continue;
 				var existingPlugins = dstTrack.Plugins.ToArray ();
 				dstTrack.Plugins.Clear ();
-				foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
-					AudioGraph.Load (XmlReader.Create (abspath (track.AudioGraph))))))
-					dstTrack.Plugins.Add (p);
+				if (track.AudioGraph != null)
+					foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
+							AudioGraph.Load (XmlReader.Create (abspath (track.AudioGraph))))))
+						dstTrack.Plugins.Add (p);
 				// recover volume and level at the end.
 				foreach (var p in existingPlugins)
 					dstTrack.Plugins.Add (p);
