@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="managed-midi" Version="1.9.8" />
+    <PackageReference Include="managed-midi" Version="1.9.14" />
     <ProjectReference Include="..\..\NTracktive\NTracktive.csproj" />
     <ProjectReference Include="..\Midi2TracktionEdit/Midi2TracktionEdit.csproj" />
   </ItemGroup>
