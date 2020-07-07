@@ -75,7 +75,7 @@ namespace Augene {
 			var ret = new AudioGraph ();
 			var doc = XDocument.Load (reader);
 			var input = doc.Root.Elements ("FILTER").FirstOrDefault (e =>
-				e.Elements ("PLUGIN").Any (p => p.Attribute ("name")?.Value == "Midi Input" &&
+				e.Elements ("PLUGIN").Any (p => string.Equals (p.Attribute ("name")?.Value, "Midi Input", StringComparison.OrdinalIgnoreCase) && // it is MIDI Input since Waveform11 (maybe)
 				                                p.Attribute ("format")?.Value == "Internal"));
 			var output = doc.Root.Elements ("FILTER").FirstOrDefault (e =>
 				e.Elements ("PLUGIN").Any (p => p.Attribute ("name")?.Value == "Audio Output" &&
