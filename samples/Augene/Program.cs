@@ -68,7 +68,7 @@ namespace Augene
 				ConfigAudioPluginHostPath = audiopluginhost,
 				ConfigAugenePlayerPath = augenePlayer
 			};
-			if (gui) {
+			if (args.Contains ("-gui") || args.Contains ("--gui")) {
 				GuiApplication.RunGui (model);
 				return;
 			}
