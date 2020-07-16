@@ -17,6 +17,7 @@ namespace Augene {
 	{
 		public class DialogOptions
 		{
+			public string InitialDirectory { get; set; }
 			public bool MultipleFiles { get; set; }
 		}
 		
@@ -154,11 +155,13 @@ namespace Augene {
 		public void ProcessNewTrack (bool selectFileInsteadOfNewFile)
 		{
 			if (selectFileInsteadOfNewFile) {
-				var files = Dialogs.ShowOpenFileDialog ("Select existing AudioGraph file for a new track");
+				var files = Dialogs.ShowOpenFileDialog ("Select existing AudioGraph file for a new track",
+					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
 				if (files.Any ())
 					AddNewTrack (files [0]);
 			} else {
-				var files = Dialogs.ShowSaveFileDialog ("New AudioGraph file for a new track");
+				var files = Dialogs.ShowSaveFileDialog ("New AudioGraph file for a new track",
+					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
 				if (files.Any ()) {
 					File.WriteAllText (files [0], AudioGraph.EmptyAudioGraph);
 					AddNewTrack (files [0]);
@@ -186,11 +189,13 @@ namespace Augene {
 		public void ProcessNewMmlFile (bool selectFileInsteadOfNewFile)
 		{
 			if (selectFileInsteadOfNewFile) {
-				var files = Dialogs.ShowOpenFileDialog ("Select existing MML file");
+				var files = Dialogs.ShowOpenFileDialog ("Select existing MML file",
+					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
 				if (files.Any ())
 					AddNewMmlFile (files [0]);
 			} else {
-				var files = Dialogs.ShowSaveFileDialog ("New MML file");
+				var files = Dialogs.ShowSaveFileDialog ("New MML file",
+					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
 				if (files.Any ()) {
 					File.WriteAllText (files [0], "// New MML file");
 					AddNewMmlFile (files [0]);

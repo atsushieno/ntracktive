@@ -87,7 +87,8 @@ namespace Augene
 			{
 				options = options ?? new DialogOptions ();
 				var dlg = new OpenFileDialog (dialogTitle);
-				dlg.Multiselect = options.MultipleFiles; 
+				dlg.Multiselect = options.MultipleFiles;
+				dlg.CurrentFolder = options.InitialDirectory;
 				if (dlg.Run ())
 					return dlg.FileNames;
 				return new string [0];
@@ -98,6 +99,7 @@ namespace Augene
 				options = options ?? new DialogOptions ();
 				var dlg = new SaveFileDialog (dialogTitle);
 				dlg.Multiselect = options.MultipleFiles; 
+				dlg.CurrentFolder = options.InitialDirectory;
 				if (dlg.Run ())
 					return dlg.FileNames;
 				return new string [0];
