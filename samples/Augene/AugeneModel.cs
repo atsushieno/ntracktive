@@ -36,6 +36,8 @@ namespace Augene {
 	{
 		const string ConfigXmlFile = "augene-config.xml";
 		
+		public bool AutoReloadProject { get; set; }
+		
 		public AugeneProject Project { get; set; } = new AugeneProject ();
 		public string? ProjectFileName { get; set; }
 		
@@ -128,15 +130,31 @@ namespace Augene {
 			}
 		}
 
+		private bool loader_busy;
+
 		public void ProcessLoadProjectFile (string file)
 		{
+			if (loader_busy)
+				return;
+			loader_busy = true;
+			var prevFile = ProjectFileName;
 			Project = AugeneProject.Load (file);
 			ProjectFileName = file;
 			LastProjectFile = ProjectFileName;
-			// FIXME: it is kind of hack, but so far we unify history with config.
-			SaveConfiguration ();
+			if (prevFile != file) {
+				// FIXME: it is kind of hack, but so far we unify history with config.
+				SaveConfiguration();
+				
+				project_file_watcher.Path = Path.GetDirectoryName(ProjectFileName);
+				if (!project_file_watcher.EnableRaisingEvents)
+					project_file_watcher.EnableRaisingEvents = true;
+
+				UpdateAutoReloadSetup();
+			}
 
 			RefreshRequested?.Invoke ();
+
+			loader_busy = false;
 		}
 
 		public void ProcessSaveProject ()
@@ -256,6 +274,33 @@ namespace Augene {
 
 			RefreshRequested?.Invoke ();
 		}
+
+		public void SetAutoReloadProject(bool value)
+		{
+			AutoReloadProject = value;
+
+			UpdateAutoReloadSetup ();
+		}
+
+		private DateTime last_change_time;
+		void UpdateAutoReloadSetup()
+		{
+			project_file_watcher.Changed += (o, e) => {
+				if (!AutoReloadProject)
+					return;
+				if (e.FullPath != ProjectFileName)
+					return;
+				// This should not be required, but the latest mono runtime raises file change events repeatedly
+				// for some reason and that somehow causes Gtk crashes within Xwt. This is a workaround to avoid that.
+				var ftime = new FileInfo(e.FullPath).LastWriteTimeUtc;
+				if (last_change_time == ftime)
+					return;
+				last_change_time = ftime;
+				ProcessLoadProjectFile (ProjectFileName);
+			};
+		}
+
+		private FileSystemWatcher project_file_watcher = new FileSystemWatcher();
 
 		public void ProcessCompile ()
 		{

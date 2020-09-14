@@ -49,6 +49,12 @@ namespace Augene
 			project.SubMenu = new Menu ();
 			menu.Items.Add (project);
 
+			var autoReload = new CheckBoxMenuItem ("_Reload Project automatically");
+			project.SubMenu.Items.Add (autoReload);
+			autoReload.Clicked += delegate {
+				model.SetAutoReloadProject (autoReload.Checked);
+			};
+
 			var compile = new MenuItem ("_Compile");
 			project.SubMenu.Items.Add (compile);
 			compile.Clicked += delegate { model.ProcessCompile (); };
