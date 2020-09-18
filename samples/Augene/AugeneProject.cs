@@ -36,7 +36,7 @@ namespace Augene {
 
 	public class AugeneTrack
 	{
-		public double Id { get; set; }
+		public string? Id { get; set; }
 		public string? AudioGraph { get; set; }
 	}
 

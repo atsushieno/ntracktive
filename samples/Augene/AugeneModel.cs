@@ -7,6 +7,7 @@ using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Xml;
+using Commons.Music.Midi;
 using Commons.Music.Midi.Mml;
 using Midi2TracktionEdit;
 using NTracktive;
@@ -189,13 +190,15 @@ namespace Augene {
 
 		public void AddNewTrack (string filename)
 		{
-			int newTrackId = 1 + (int) Project.Tracks.Select (t => t.Id).Max ();
-			Project.Tracks.Add (new AugeneTrack {Id = newTrackId, AudioGraph = GetItemFileRelativePath (filename)});
+			int newTrackId = 1 + (int) Project.Tracks.Count;
+			while (Project.Tracks.Any (t => t.Id == newTrackId.ToString ()))
+				newTrackId++;
+			Project.Tracks.Add (new AugeneTrack {Id = newTrackId.ToString (), AudioGraph = GetItemFileRelativePath (filename)});
 			
 			RefreshRequested?.Invoke ();
 		}
 
-		public void ProcessDeleteTracks (IEnumerable<double> trackIdsToRemove)
+		public void ProcessDeleteTracks (IEnumerable<string> trackIdsToRemove)
 		{
 			var tracksRemaining = Project.Tracks.Where (t => !trackIdsToRemove.Contains (t.Id)).ToArray ();
 			Project.Tracks.Clear ();
@@ -330,7 +333,7 @@ namespace Augene {
 					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
 			foreach (var track in Project.Tracks) {
 				var dstTrack = dstTracks.FirstOrDefault (t =>
-					t.Id == track.Id.ToString (CultureInfo.CurrentCulture));
+					t.Id == track.Id);
 				if (dstTrack == null)
 					continue;
 				var existingPlugins = dstTrack.Plugins.ToArray ();

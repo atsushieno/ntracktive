@@ -84,7 +84,7 @@ namespace Augene
 			else {
 				model.Project.MmlFiles.Add ("samples/sample.mugene");
 				model.Project.MmlStrings.Add ("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
-				model.Project.Tracks.Add (new AugeneTrack {AudioGraph = "sample.filtergraph", Id = 1});
+				model.Project.Tracks.Add (new AugeneTrack {AudioGraph = "sample.filtergraph", Id = "1"});
 				model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
 				
 				Console.Error.Write ("Create a project that looks like this:");

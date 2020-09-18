@@ -296,7 +296,7 @@ namespace Augene
 		void DeleteSelectedTracks ()
 		{
 			var trackListStore = (ListStore) trackListView.DataSource;
-			var trackIds = new List<double> ();
+			var trackIds = new List<string> ();
 			int [] rows = (int []) trackListView.SelectedRows.Clone ();
 			foreach (var row in rows.Reverse ())
 				trackIds.Add (trackListStore.GetValue (row, trackIdField));
@@ -390,7 +390,7 @@ namespace Augene
 		
 		readonly AugeneModel model;
 		ListView trackListView;
-		readonly DataField<double> trackIdField = new DataField<double> ();
+		readonly DataField<string> trackIdField = new DataField<string> ();
 		readonly DataField<string> trackAudioGraphField = new DataField<string> ();
 		ListView mmlFileListView;
 		readonly DataField<string> mmlFileField = new DataField<string> ();

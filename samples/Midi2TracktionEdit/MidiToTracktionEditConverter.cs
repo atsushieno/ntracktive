@@ -202,6 +202,9 @@ namespace Midi2TracktionEdit
 				default: // sysex or meta
 					if (msg.Event.EventType == MidiEvent.Meta) {
 						switch (msg.Event.MetaType) {
+						case MidiMetaType.TrackName:
+							ttrack.Id = Encoding.UTF8.GetString (msg.Event.ExtraData);
+							break;
 						case MidiMetaType.Marker:
 							switch (context.MarkerImportStrategy) {
 							case MarkerImportStrategy.PerTrack:
