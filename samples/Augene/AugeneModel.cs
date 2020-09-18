@@ -131,13 +131,8 @@ namespace Augene {
 			}
 		}
 
-		private bool loader_busy;
-
 		public void ProcessLoadProjectFile (string file)
 		{
-			if (loader_busy)
-				return;
-			loader_busy = true;
 			var prevFile = ProjectFileName;
 			Project = AugeneProject.Load (file);
 			ProjectFileName = file;
@@ -155,8 +150,6 @@ namespace Augene {
 
 			if (RefreshRequested != null)
 				Xwt.Application.Invoke (RefreshRequested);
-
-			loader_busy = false;
 		}
 
 		public void ProcessSaveProject ()
