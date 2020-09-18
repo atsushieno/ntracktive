@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Xml;
 using Commons.Music.Midi;
 using Commons.Music.Midi.Mml;
@@ -38,6 +39,8 @@ namespace Augene {
 		const string ConfigXmlFile = "augene-config.xml";
 		
 		public bool AutoReloadProject { get; set; }
+		
+		public bool AutoCompileProject { get; set; }
 		
 		public AugeneProject Project { get; set; } = new AugeneProject ();
 		public string? ProjectFileName { get; set; }
@@ -145,7 +148,7 @@ namespace Augene {
 				if (!project_file_watcher.EnableRaisingEvents)
 					project_file_watcher.EnableRaisingEvents = true;
 
-				UpdateAutoReloadSetup();
+				UpdateAutoReloadSetup ();
 			}
 
 			if (RefreshRequested != null)
@@ -279,21 +282,28 @@ namespace Augene {
 			UpdateAutoReloadSetup ();
 		}
 
-		private DateTime last_change_time;
+		public void SetAutoRecompileProject(bool value)
+		{
+			AutoCompileProject = value;
+		}
+
 		void UpdateAutoReloadSetup()
 		{
+			Func<string, string, bool> cmp =
+				(s1, s2) => s1 == s2;
 			project_file_watcher.Changed += (o, e) => {
-				if (!AutoReloadProject)
+				if (!AutoReloadProject && !AutoCompileProject)
 					return;
-				if (e.FullPath != ProjectFileName)
+				var proj = ProjectFileName;
+				if (proj == null)
 					return;
-				// This should not be required, but the latest mono runtime raises file change events repeatedly
-				// for some reason and that somehow causes Gtk crashes within Xwt. This is a workaround to avoid that.
-				var ftime = new FileInfo(e.FullPath).LastWriteTimeUtc;
-				if (last_change_time == ftime)
+				if (e.FullPath != ProjectFileName && Project.MmlFiles.All (m => !cmp(Path.Combine (Path.GetDirectoryName (proj), m), e.FullPath)))
 					return;
-				last_change_time = ftime;
-				ProcessLoadProjectFile (ProjectFileName);
+				if (AutoReloadProject)
+					ProcessLoadProjectFile (proj);
+				
+				if (AutoCompileProject)
+					Compile ();
 			};
 		}
 

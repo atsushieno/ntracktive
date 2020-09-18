@@ -55,6 +55,12 @@ namespace Augene
 				model.SetAutoReloadProject (autoReload.Checked);
 			};
 
+			var autoRecompile = new CheckBoxMenuItem ("_Recompile Project automatically");
+			project.SubMenu.Items.Add (autoRecompile);
+			autoReload.Clicked += delegate {
+				model.SetAutoRecompileProject (autoReload.Checked);
+			};
+
 			var compile = new MenuItem ("_Compile");
 			project.SubMenu.Items.Add (compile);
 			compile.Clicked += delegate { model.ProcessCompile (); };
