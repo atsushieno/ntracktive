@@ -153,7 +153,8 @@ namespace Augene {
 				UpdateAutoReloadSetup();
 			}
 
-			RefreshRequested?.Invoke ();
+			if (RefreshRequested != null)
+				Xwt.Application.Invoke (RefreshRequested);
 
 			loader_busy = false;
 		}
