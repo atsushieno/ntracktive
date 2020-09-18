@@ -88,13 +88,13 @@ namespace Augene
 				model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
 				
 				Console.Error.Write ("Create a project that looks like this:");
-			}
 
-			// dump project content.
-			var memoryStream = new MemoryStream ();
-			serializer.Serialize (memoryStream, model.Project);
-			memoryStream.Position = 0;
-			Console.Error.WriteLine (new StreamReader (memoryStream).ReadToEnd ());
+				// dump project content.
+				var memoryStream = new MemoryStream ();
+				serializer.Serialize (memoryStream, model.Project);
+				memoryStream.Position = 0;
+				Console.Error.WriteLine (new StreamReader (memoryStream).ReadToEnd ());
+			}
 
 			model.Compile ();
 		}
