@@ -59,16 +59,16 @@ namespace Augene
 		{
 			bool gui = false;
 			string? audiopluginhost = null, augenePlayer = null;
-			new Mono.Options.OptionSet ()
-				.Add ("-gui", s => gui = true)
-				.Add ("-audiopluginhost=", s => audiopluginhost = s)
-				.Add ("-augene-player=", (s, v) => augenePlayer = s)
+			var rest = new Mono.Options.OptionSet ()
+				.Add ("gui", s => gui = true) // backward compatibility (no need anymore)
+				.Add ("audiopluginhost=", s => audiopluginhost = s)
+				.Add ("augene-player=", (s, v) => augenePlayer = s)
 				.Parse (args);
 			var model = new AugeneModel {
 				ConfigAudioPluginHostPath = audiopluginhost,
 				ConfigAugenePlayerPath = augenePlayer
 			};
-			if (args.Contains ("-gui") || args.Contains ("--gui")) {
+			if (gui || !rest.Any ()) {
 				GuiApplication.RunGui (model);
 				return;
 			}
