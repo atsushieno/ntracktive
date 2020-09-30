@@ -179,7 +179,7 @@ namespace Augene {
 				var files = Dialogs.ShowSaveFileDialog ("New AudioGraph file for a new track",
 					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
 				if (files.Any ()) {
-					File.WriteAllText (files [0], AudioGraph.EmptyAudioGraph);
+					File.WriteAllText (files [0], JuceAudioGraph.EmptyAudioGraph);
 					AddNewTrack (files [0]);
 				}
 			}
@@ -254,7 +254,7 @@ namespace Augene {
 			} else {
 				var files = Dialogs.ShowSaveFileDialog ("New AudioGraph file as a master plugin");
 				if (files.Any ()) {
-					File.WriteAllText (files [0], AudioGraph.EmptyAudioGraph);
+					File.WriteAllText (files [0], JuceAudioGraph.EmptyAudioGraph);
 					AddNewMasterPluginFile (files [0]);
 				}
 			}
@@ -316,6 +316,12 @@ namespace Augene {
 			if (ProjectFileName != null)
 				Compile ();
 		}
+
+		public void ReportError (string errorId, string msg)
+		{
+			// FIXME: appropriate error reporting
+			Console.Error.WriteLine ($"{errorId}: {msg}");
+		}
 		
 		public void Compile ()
 		{
@@ -342,18 +348,35 @@ namespace Augene {
 					continue;
 				var existingPlugins = dstTrack.Plugins.ToArray ();
 				dstTrack.Plugins.Clear ();
-				if (track.AudioGraph != null)
+				if (track.AudioGraph != null) {
+					// track's AudioGraph may be either a ID reference or a filename.
+					var ag = Project.AudioGraphs.FirstOrDefault(a => a.Id == track.AudioGraph);
+					var agFile = ag?.Source ?? track.AudioGraph;
+					if (!File.Exists (abspath(agFile))) {
+						ReportError ("AugeneAudioGraphNotFound", "AudioGraph does not exist: " + abspath (agFile));
+						continue;
+					}
 					foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
-							AudioGraph.Load (XmlReader.Create (abspath (track.AudioGraph))))))
+							JuceAudioGraph.Load (XmlReader.Create (abspath (agFile))))))
 						dstTrack.Plugins.Add (p);
+				}
 				// recover volume and level at the end.
 				foreach (var p in existingPlugins)
 					dstTrack.Plugins.Add (p);
 			}
-			foreach (var masterPlugin in Project.MasterPlugins)
+
+			foreach (var masterPlugin in Project.MasterPlugins) {
+				// AudioGraph may be either a ID reference or a filename.
+				var ag = Project.AudioGraphs.FirstOrDefault (a => a.Id == masterPlugin);
+				var agFile = ag?.Source ?? masterPlugin;
+				if (!File.Exists (abspath(agFile))) {
+					ReportError ("AugeneAudioGraphNotFound", "AudioGraph does not exist: " + abspath (agFile));
+					continue;
+				}
 				foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
-					AudioGraph.Load (XmlReader.Create (abspath (masterPlugin))))))
+					JuceAudioGraph.Load (XmlReader.Create (abspath (agFile))))))
 					edit.MasterPlugins.Add (p);
+			}
 
 			string outfile = OutputEditFileName ?? abspath (Path.ChangeExtension (Path.GetFileName (ProjectFileName), ".tracktionedit"));
 			using (var sw = File.CreateText (outfile)) {

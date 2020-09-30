@@ -12,8 +12,10 @@ namespace Augene {
 		public static AugeneProject Load (string filename)
 		{
 			var serializer = new XmlSerializer (typeof (AugeneProject));
-			using (var fileStream = File.OpenRead (filename))
-				return (AugeneProject) serializer.Deserialize (XmlReader.Create (fileStream));
+			using (var fileStream = File.OpenRead(filename)) {
+				var project = (AugeneProject) serializer.Deserialize (XmlReader.Create (fileStream));
+				return project;
+			}
 		}
 
 		public static void Save (AugeneProject project, string filename)
@@ -28,10 +30,19 @@ namespace Augene {
 				serializer.Serialize (tw, project);
 		}
 		
+		[XmlArrayItem ("AudioGraph")] public List<AugeneAudioGraph> AudioGraphs { get; set; } = new List<AugeneAudioGraph> ();
 		[XmlArrayItem ("AudioGraph")] public List<string> MasterPlugins { get; set; } = new List<string> ();
 		public List<AugeneTrack> Tracks { get; set; } = new List<AugeneTrack> ();
 		[XmlArrayItem ("MmlFile")] public List<string> MmlFiles { get; set; } = new List<string> ();
 		[XmlArrayItem ("MmlString")] public List<string> MmlStrings { get; set; } = new List<string> ();
+	}
+
+	public class AugeneAudioGraph
+	{
+		[XmlAttribute]
+		public string? Id { get; set; }
+		[XmlAttribute]
+		public string? Source { get; set; }
 	}
 
 	public class AugeneTrack
@@ -40,7 +51,7 @@ namespace Augene {
 		public string? AudioGraph { get; set; }
 	}
 
-	public class AudioGraph
+	public class JuceAudioGraph
 	{
 		public const string EmptyAudioGraph = @"<FILTERGRAPH>
   <FILTER uid='5' x='0.5' y='0.1'>
@@ -70,9 +81,9 @@ namespace Augene {
 </FILTERGRAPH>
 ";
 		
-		public static IEnumerable<AudioGraph> Load (XmlReader reader)
+		public static IEnumerable<JuceAudioGraph> Load (XmlReader reader)
 		{
-			var ret = new AudioGraph ();
+			var ret = new JuceAudioGraph ();
 			var doc = XDocument.Load (reader);
 			var input = doc.Root.Elements ("FILTER").FirstOrDefault (e =>
 				e.Elements ("PLUGIN").Any (p => string.Equals (p.Attribute ("name")?.Value, "Midi Input", StringComparison.OrdinalIgnoreCase) && // it is MIDI Input since Waveform11 (maybe)
@@ -97,7 +108,7 @@ namespace Augene {
 						yield break;
 					var state = filter.Element ("STATE");
 					var prog = plugin.Attribute ("programNum");
-					yield return new AudioGraph {
+					yield return new JuceAudioGraph {
 						File = plugin.Attribute ("file")?.Value,
 						Category = plugin.Attribute ("category")?.Value,
 						Manufacturer = plugin.Attribute ("manufacturer")?.Value,
@@ -137,7 +148,7 @@ namespace Augene {
 
 	public class AugenePluginSpecifier
 	{
-		public static IEnumerable<AugenePluginSpecifier> FromAudioGraph (IEnumerable<AudioGraph> audioGraph)
+		public static IEnumerable<AugenePluginSpecifier> FromAudioGraph (IEnumerable<JuceAudioGraph> audioGraph)
 		{
 			return audioGraph.Select (src => new AugenePluginSpecifier {
 				Type = src.Format,
