@@ -287,7 +287,7 @@ namespace Augene {
 			AutoCompileProject = value;
 		}
 
-		void UpdateAutoReloadSetup()
+		void UpdateAutoReloadSetup ()
 		{
 			Func<string, string, bool> cmp =
 				(s1, s2) => s1 == s2;
@@ -322,12 +322,18 @@ namespace Augene {
 			// FIXME: appropriate error reporting
 			Console.Error.WriteLine ($"{errorId}: {msg}");
 		}
+
+		string ResolvePathRelativetoProject (string pathSpec)
+		{
+			return Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), pathSpec);	
+		}
 		
 		public void Compile ()
 		{
 			if (ProjectFileName == null)
 				throw new InvalidOperationException ("To compile the project, ProjectFileName must be specified in prior");
-			Func<string, string> abspath = src => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), src);
+
+			Func<string, string> abspath = ResolvePathRelativetoProject;
 			var compiler = new MmlCompiler ();
 			var mmlFilesAbs = Project.MmlFiles.Select (_ => abspath (_)).ToArray ();
 			var mmls = mmlFilesAbs.Select (f => new MmlInputSource (f, new StringReader (File.ReadAllText (f))))
@@ -341,6 +347,7 @@ namespace Augene {
 			for (int n = 0; n < dstTracks.Length; n++)
 				if (edit.Tracks [n].Id == null)
 					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
+			var audioGraphs = Project.AudioGraphsExpandedFullPath (abspath).ToArray ();
 			foreach (var track in Project.Tracks) {
 				var dstTrack = dstTracks.FirstOrDefault (t =>
 					t.Id == track.Id);
@@ -350,9 +357,9 @@ namespace Augene {
 				dstTrack.Plugins.Clear ();
 				if (track.AudioGraph != null) {
 					// track's AudioGraph may be either a ID reference or a filename.
-					var ag = Project.AudioGraphs.FirstOrDefault(a => a.Id == track.AudioGraph);
+					var ag = audioGraphs.FirstOrDefault (a => a.Id == track.AudioGraph);
 					var agFile = ag?.Source ?? track.AudioGraph;
-					if (!File.Exists (abspath(agFile))) {
+					if (!File.Exists (abspath (agFile))) {
 						ReportError ("AugeneAudioGraphNotFound", "AudioGraph does not exist: " + abspath (agFile));
 						continue;
 					}
@@ -367,9 +374,9 @@ namespace Augene {
 
 			foreach (var masterPlugin in Project.MasterPlugins) {
 				// AudioGraph may be either a ID reference or a filename.
-				var ag = Project.AudioGraphs.FirstOrDefault (a => a.Id == masterPlugin);
+				var ag = audioGraphs.FirstOrDefault (a => a.Id == masterPlugin);
 				var agFile = ag?.Source ?? masterPlugin;
-				if (!File.Exists (abspath(agFile))) {
+				if (!File.Exists (abspath (agFile))) {
 					ReportError ("AugeneAudioGraphNotFound", "AudioGraph does not exist: " + abspath (agFile));
 					continue;
 				}

@@ -12,7 +12,7 @@ namespace Augene {
 		public static AugeneProject Load (string filename)
 		{
 			var serializer = new XmlSerializer (typeof (AugeneProject));
-			using (var fileStream = File.OpenRead(filename)) {
+			using (var fileStream = File.OpenRead (filename)) {
 				var project = (AugeneProject) serializer.Deserialize (XmlReader.Create (fileStream));
 				return project;
 			}
@@ -30,11 +30,55 @@ namespace Augene {
 				serializer.Serialize (tw, project);
 		}
 		
-		[XmlArrayItem ("AudioGraph")] public List<AugeneAudioGraph> AudioGraphs { get; set; } = new List<AugeneAudioGraph> ();
+		[XmlArrayItem ("Include")]
+		public List<AugeneInclude> Includes { get; set; }
+
+		[XmlArrayItem ("AudioGraph")]
+		public List<AugeneAudioGraph> AudioGraphs { get; set; } = new List<AugeneAudioGraph> ();
+
 		[XmlArrayItem ("AudioGraph")] public List<string> MasterPlugins { get; set; } = new List<string> ();
 		public List<AugeneTrack> Tracks { get; set; } = new List<AugeneTrack> ();
 		[XmlArrayItem ("MmlFile")] public List<string> MmlFiles { get; set; } = new List<string> ();
 		[XmlArrayItem ("MmlString")] public List<string> MmlStrings { get; set; } = new List<string> ();
+	}
+	
+	public static class AugeneProjectExtensions
+	{
+		public static void CheckIncludeValidity (this AugeneProject project, List<string> includedAncestors, Func<string,string> resolveAbsPath, List<string> errors)
+		{
+			foreach (var inc in project.Includes)
+			{
+				if (inc.Source == null)
+					continue;
+				var absPath = resolveAbsPath (inc.Source);
+				if (includedAncestors.Contains (absPath, StringComparer.OrdinalIgnoreCase))
+					errors.Add ("Recursive inclusion was found: " + absPath);
+				var child = AugeneProject.Load (absPath);
+				child.CheckIncludeValidity (includedAncestors, resolveAbsPath, errors);
+			}
+		}
+		
+		public static IEnumerable<AugeneAudioGraph> AudioGraphsExpandedFullPath (this AugeneProject project, Func<string,string> resolveAbsPath)
+		{
+			project.CheckIncludeValidity (new List<string> (), resolveAbsPath, new List<string> ());
+			foreach (var item in project.AudioGraphs)
+				yield return new AugeneAudioGraph { Id = item.Id, Source = resolveAbsPath (item.Source) };
+			foreach (var include in project.Includes) {
+				var src = include.Source;
+				if (src == null)
+					continue;
+				var absPath = resolveAbsPath (src);
+				Func<string, string> resolveNestedAbsPath = src => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (absPath)), src);
+				foreach (var nested in AugeneProject.Load (resolveAbsPath (src)).AudioGraphsExpandedFullPath (resolveNestedAbsPath))
+					yield return nested;
+			}
+		}
+	}
+
+	public class AugeneInclude
+	{
+		[XmlAttribute]
+		public string? Source { get; set; }
 	}
 
 	public class AugeneAudioGraph
