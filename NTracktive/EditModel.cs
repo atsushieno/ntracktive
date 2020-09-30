@@ -533,6 +533,9 @@ namespace NTracktive
 
 	public class TrackElement : AbstractContentTrackElement
 	{
+		// extended property to assign an InstrumentName from MIDI META event.
+		public string? Extension_InstrumentName { get; set; }
+		
 		public double? MidiVProp { get; set; }
 		public double? MidiVOffset { get; set; }
 		public string? Colour { get; set; }

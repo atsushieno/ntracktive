@@ -356,8 +356,7 @@ namespace Augene {
 			
 			// Step 1: assign audio graphs by Bank Select and Program Change, if any.
 			// Such a track must not contain more than one program change, bank select MSB and bank select LSB.
-			foreach (var track in edit.Tracks.OfType<TrackElement> ())
-			{
+			foreach (var track in edit.Tracks.OfType<TrackElement> ()) {
 				var programs = track.Clips.OfType<MidiClipElement> ()
 					.Where (c => c.Sequence != null)
 					.SelectMany (c => c.Sequence.Events.OfType<ControlElement> ()
@@ -384,8 +383,19 @@ namespace Augene {
 						JuceAudioGraph.Load (XmlReader.Create (abspath (ag.Source))))))
 						track.Plugins.Add (p);
 			}
-			
-			// Step 2: assign audio graphs by TRACKNAME if not mapped yet.
+
+			// Step 2: assign audio graphs by INSTRUMENTNAME (if named). It will overwrite bank mapping.
+			foreach (var track in edit.Tracks.OfType<TrackElement> ()) {
+				if (track.Extension_InstrumentName == null)
+					continue;
+				var ag = audioGraphs.FirstOrDefault (a => a.Id == track.Extension_InstrumentName);
+				if (ag != null)
+					foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
+						JuceAudioGraph.Load (XmlReader.Create (abspath (ag.Source))))))
+						track.Plugins.Add (p);
+			}
+
+			// Step 3: assign audio graphs by TRACKNAME (if named). It will overwrite all above.
 			foreach (var track in Project.Tracks) {
 				var dstTrack = dstTracks.FirstOrDefault (t =>
 					t.Id == track.Id);

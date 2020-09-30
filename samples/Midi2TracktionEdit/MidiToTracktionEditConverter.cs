@@ -205,6 +205,9 @@ namespace Midi2TracktionEdit
 						case MidiMetaType.TrackName:
 							ttrack.Id = Encoding.UTF8.GetString (msg.Event.ExtraData);
 							break;
+						case MidiMetaType.InstrumentName: // This does not exist in TracktionEdit; ntracktive extends this.
+							ttrack.Extension_InstrumentName = Encoding.UTF8.GetString (msg.Event.ExtraData);
+							break;
 						case MidiMetaType.Marker:
 							switch (context.MarkerImportStrategy) {
 							case MarkerImportStrategy.PerTrack:
