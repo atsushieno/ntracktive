@@ -58,18 +58,21 @@ namespace Augene {
 			}
 		}
 		
-		public static IEnumerable<AugeneAudioGraph> AudioGraphsExpandedFullPath (this AugeneProject project, Func<string,string> resolveAbsPath)
+		public static IEnumerable<AugeneAudioGraph> AudioGraphsExpandedFullPath (this AugeneProject project, Func<string,string> resolveAbsPath, string? bankMsb, string? bankLsb)
 		{
 			project.CheckIncludeValidity (new List<string> (), resolveAbsPath, new List<string> ());
+			int count = 0;
 			foreach (var item in project.AudioGraphs)
-				yield return new AugeneAudioGraph { Id = item.Id, Source = resolveAbsPath (item.Source) };
+				yield return new AugeneAudioGraph { BankMsb = bankMsb, BankLsb = bankLsb, Program = count++.ToString (), Id = item.Id, Source = resolveAbsPath (item.Source) };
 			foreach (var include in project.Includes) {
 				var src = include.Source;
 				if (src == null)
 					continue;
 				var absPath = resolveAbsPath (src);
 				Func<string, string> resolveNestedAbsPath = src => Path.Combine (Path.GetDirectoryName (Path.GetFullPath (absPath)), src);
-				foreach (var nested in AugeneProject.Load (resolveAbsPath (src)).AudioGraphsExpandedFullPath (resolveNestedAbsPath))
+				var msb = include.BankMsb ?? include.Bank;
+				var lsb = include.BankLsb;
+				foreach (var nested in AugeneProject.Load (resolveAbsPath (src)).AudioGraphsExpandedFullPath (resolveNestedAbsPath, msb, lsb))
 					yield return nested;
 			}
 		}
@@ -78,11 +81,24 @@ namespace Augene {
 	public class AugeneInclude
 	{
 		[XmlAttribute]
+		public string? Bank { get; set; } // equivalent to BankMsb
+		[XmlAttribute]
+		public string? BankMsb { get; set; }
+		[XmlAttribute]
+		public string? BankLsb { get; set; }
+		[XmlAttribute]
 		public string? Source { get; set; }
 	}
 
 	public class AugeneAudioGraph
 	{
+		[XmlIgnore]
+		internal string? Program { get; set; }
+		[XmlIgnore]
+		internal string? BankMsb { get; set; }
+		[XmlIgnore]
+		internal string? BankLsb { get; set; }
+		
 		[XmlAttribute]
 		public string? Id { get; set; }
 		[XmlAttribute]

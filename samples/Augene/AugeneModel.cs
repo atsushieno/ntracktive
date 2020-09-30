@@ -327,6 +327,8 @@ namespace Augene {
 		{
 			return Path.Combine (Path.GetDirectoryName (Path.GetFullPath (ProjectFileName)), pathSpec);	
 		}
+
+		private const int TracktionProgramChange = 4097;
 		
 		public void Compile ()
 		{
@@ -344,10 +346,46 @@ namespace Augene {
 			var converter = new MidiToTracktionEditConverter (new MidiImportContext (music, edit));
 			converter.ImportMusic ();
 			var dstTracks = edit.Tracks.OfType<TrackElement> ().ToArray ();
+			
+			var audioGraphs = Project.AudioGraphsExpandedFullPath (abspath, null, null).ToArray ();
+			
+			// Assign numeric IDs to those unnamed tracks.
 			for (int n = 0; n < dstTracks.Length; n++)
 				if (edit.Tracks [n].Id == null)
 					edit.Tracks [n].Id = (n + 1).ToString (CultureInfo.CurrentCulture);
-			var audioGraphs = Project.AudioGraphsExpandedFullPath (abspath).ToArray ();
+			
+			// Step 1: assign audio graphs by Bank Select and Program Change, if any.
+			// Such a track must not contain more than one program change, bank select MSB and bank select LSB.
+			foreach (var track in edit.Tracks.OfType<TrackElement> ())
+			{
+				var programs = track.Clips.OfType<MidiClipElement> ()
+					.Where (c => c.Sequence != null)
+					.SelectMany (c => c.Sequence.Events.OfType<ControlElement> ()
+						.Where (e => e.Type == TracktionProgramChange)).ToArray ();
+				var banks = track.Clips.OfType<MidiClipElement> ()
+					.Where (c => c.Sequence != null)
+					.SelectMany (c => c.Sequence.Events.OfType<ControlElement> ()
+						.Where (e => e.Type == MidiCC.BankSelect)).ToArray ();
+				var bankLSBs = track.Clips.OfType<MidiClipElement> ()
+					.Where (c => c.Sequence != null)
+					.SelectMany (c => c.Sequence.Events.OfType<ControlElement> ()
+						.Where (e => e.Type == MidiCC.BankSelectLsb)).ToArray ();
+				if (programs.Length != 1 || banks.Length > 1 || bankLSBs.Length > 1)
+					continue; // ignore
+				var msb = (banks.FirstOrDefault ()?.Val / 128 ?? 0).ToString ();
+				var lsb = (bankLSBs.FirstOrDefault ()?.Val / 128 ?? 0).ToString ();
+				var program = (programs.First ().Val / 128).ToString ();
+				var ag = audioGraphs.FirstOrDefault (a =>
+					a.Program == program &&
+					(a.BankMsb == msb || a.BankMsb == null && msb == "0") &&
+					(a.BankLsb == lsb || a.BankLsb == null && lsb == "0"));
+				if (ag != null)
+					foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
+						JuceAudioGraph.Load (XmlReader.Create (abspath (ag.Source))))))
+						track.Plugins.Add (p);
+			}
+			
+			// Step 2: assign audio graphs by TRACKNAME if not mapped yet.
 			foreach (var track in Project.Tracks) {
 				var dstTrack = dstTracks.FirstOrDefault (t =>
 					t.Id == track.Id);
