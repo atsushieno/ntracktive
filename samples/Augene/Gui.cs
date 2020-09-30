@@ -130,7 +130,7 @@ namespace Augene
 			trackListView.DataSource = trackListStore;
 			trackListView.ButtonPressed += (o, e) => {
 				if (e.MultiplePress > 1 && trackListView.SelectedRows.Length == 1) {
-					model.ProcessLaunchAudioPluginHost (GetSelectedAudioGraphFilePath ());
+					model.ProcessLaunchAudioPluginHost (GetSelectedAudioGraphFilePathFromTracks ());
 				}
 				if (e.Button == PointerButton.Right) {
 					var contextMenu = new Menu ();
@@ -144,13 +144,13 @@ namespace Augene
 					contextMenu.Items.Add (newTrackWithFileMenuItem);
 
 					var openFile = new MenuItem("Open with AudioPluginHost"); // same as double click
-					openFile.Clicked += delegate { model.ProcessLaunchAudioPluginHost (GetSelectedAudioGraphFilePath ()); };
-					openFile.Sensitive = mmlFileListView.SelectedRows.Length == 1;
+					openFile.Clicked += delegate { model.ProcessLaunchAudioPluginHost (GetSelectedAudioGraphFilePathFromTracks ()); };
+					openFile.Sensitive = trackListView.SelectedRows.Length == 1;
 					contextMenu.Items.Add (openFile);
 
 					var openContaininfFolder = new MenuItem("Open containing folder");
-					openContaininfFolder.Clicked += delegate { model.OpenFileOrContainingFolder (Path.GetDirectoryName (GetSelectedAudioGraphFilePath ())); };
-					openContaininfFolder.Sensitive = mmlFileListView.SelectedRows.Length == 1;
+					openContaininfFolder.Clicked += delegate { model.OpenFileOrContainingFolder (Path.GetDirectoryName (GetSelectedAudioGraphFilePathFromTracks ())); };
+					openContaininfFolder.Sensitive = trackListView.SelectedRows.Length == 1;
 					contextMenu.Items.Add (openContaininfFolder);
 					
 					var deleteTracksMenuItem = new MenuItem("Delete selected track(s)");
@@ -171,7 +171,60 @@ namespace Augene
 			trackBox.PackStart (trackListView, true);
 
 			hbox.PackStart (trackBox, true);
+			
+			// audioGraphListView
+			var audioGraphBox = new VBox ();
 
+			audioGraphListView = new ListView ();
+			var audioGraphListStore = new ListStore (audioGraphIdField, audioGraphSourceField);
+			audioGraphListView.Columns.Add ("ID", audioGraphIdField);
+			audioGraphListView.Columns.Add ("Source", audioGraphSourceField);
+			audioGraphListView.DataSource = audioGraphListStore;
+			audioGraphListView.ButtonPressed += (o, e) => {
+				if (e.MultiplePress > 1 && audioGraphListView.SelectedRows.Length == 1) {
+					model.ProcessLaunchAudioPluginHost (GetSelectedAudioGraphFilePathFromAudioGraphs ());
+				}
+				if (e.Button == PointerButton.Right) {
+					var contextMenu = new Menu ();
+					
+					var newAudioGraphMenuItem = new MenuItem("New audio graph");
+					newAudioGraphMenuItem.Clicked += delegate { model.ProcessNewAudioGraph (false); };
+					contextMenu.Items.Add (newAudioGraphMenuItem);
+
+					var newAudioGraphWithFileMenuItem = new MenuItem("New audio graph with existing AudioGraph");
+					newAudioGraphWithFileMenuItem.Clicked += delegate { model.ProcessNewAudioGraph (true); };
+					contextMenu.Items.Add (newAudioGraphWithFileMenuItem);
+
+					var openFile = new MenuItem("Open with AudioPluginHost"); // same as double click
+					openFile.Clicked += delegate { model.ProcessLaunchAudioPluginHost (GetSelectedAudioGraphFilePathFromAudioGraphs ()); };
+					openFile.Sensitive = audioGraphListView.SelectedRows.Length == 1;
+					contextMenu.Items.Add (openFile);
+
+					var openContaininfFolder = new MenuItem("Open containing folder");
+					openContaininfFolder.Clicked += delegate { model.OpenFileOrContainingFolder (Path.GetDirectoryName (GetSelectedAudioGraphFilePathFromAudioGraphs ())); };
+					openContaininfFolder.Sensitive = audioGraphListView.SelectedRows.Length == 1;
+					contextMenu.Items.Add (openContaininfFolder);
+					
+					var deleteAudioGraphsMenuItem = new MenuItem("Delete selected audio graph(s)");
+					deleteAudioGraphsMenuItem.Clicked += delegate { DeleteSelectedTracks (); };
+					deleteAudioGraphsMenuItem.Sensitive = audioGraphListView.SelectedRows.Any ();
+					contextMenu.Items.Add (deleteAudioGraphsMenuItem);
+
+					contextMenu.Popup ();
+				}
+			};
+			audioGraphListView.KeyPressed += (o, e) => {
+				if (e.Key == Key.Delete || e.Key == Key.BackSpace) {
+					DeleteSelectedAudioGraphs ();
+					e.Handled = true;
+				}
+			};
+
+			audioGraphBox.PackStart (audioGraphListView, true);
+
+			hbox.PackStart (audioGraphBox, true);
+
+			// mmlFileListView
 			var mmlFileBox = new VBox ();
 
 			mmlFileListView = new ListView ();
@@ -279,6 +332,8 @@ namespace Augene
 		{
 			var trackListStore = (ListStore) trackListView.DataSource;
 			trackListStore.Clear ();
+			var audioGraphListStore = (ListStore) audioGraphListView.DataSource;
+			audioGraphListStore.Clear ();
 			var mmlListStore = (ListStore) mmlFileListView.DataSource;
 			mmlListStore.Clear ();
 			var masterPluginListStore = (ListStore) masterPluginListView.DataSource;
@@ -288,6 +343,11 @@ namespace Augene
 				int idx = trackListStore.AddRow ();
 				trackListStore.SetValues (idx, trackIdField, track.Id, trackAudioGraphField,
 					track.AudioGraph);
+			}
+			foreach (var graph in model.Project.AudioGraphs) {
+				int idx = audioGraphListStore.AddRow ();
+				audioGraphListStore.SetValues (idx, audioGraphIdField, graph.Id, audioGraphSourceField,
+					graph.Source);
 			}
 			foreach (var mmlFile in model.Project.MmlFiles) {
 				int idx = mmlListStore.AddRow ();
@@ -308,6 +368,17 @@ namespace Augene
 				trackIds.Add (trackListStore.GetValue (row, trackIdField));
 
 			model.ProcessDeleteTracks (trackIds);
+		}
+
+		void DeleteSelectedAudioGraphs ()
+		{
+			var audioGraphListStore = (ListStore) audioGraphListView.DataSource;
+			var graphIds = new List<string> ();
+			int [] rows = (int []) audioGraphListView.SelectedRows.Clone ();
+			foreach (var row in rows.Reverse ())
+				graphIds.Add (audioGraphListStore.GetValue (row, trackIdField));
+
+			model.ProcessDeleteAudioGraphs (graphIds);
 		}
 
 		void UnregisterSelectedMmlFiles ()
@@ -380,11 +451,18 @@ namespace Augene
 				(string) lv.DataSource.GetValue (lv.SelectedRow, mmlFileField.Index));
 		}
 
-		string GetSelectedAudioGraphFilePath ()
+		string GetSelectedAudioGraphFilePathFromTracks ()
 		{
 			var lv = trackListView;
 			return model.GetItemFileAbsolutePath (
 				(string) lv.DataSource.GetValue (lv.SelectedRow, trackAudioGraphField.Index));
+		}
+
+		string GetSelectedAudioGraphFilePathFromAudioGraphs ()
+		{
+			var lv = audioGraphListView;
+			return model.GetItemFileAbsolutePath (
+				(string) lv.DataSource.GetValue (lv.SelectedRow, audioGraphSourceField.Index));
 		}
 
 		string GetSelectedMasterPluginFilePath ()
@@ -398,6 +476,9 @@ namespace Augene
 		ListView trackListView;
 		readonly DataField<string> trackIdField = new DataField<string> ();
 		readonly DataField<string> trackAudioGraphField = new DataField<string> ();
+		ListView audioGraphListView;
+		readonly DataField<string> audioGraphIdField = new DataField<string> ();
+		readonly DataField<string> audioGraphSourceField = new DataField<string> ();
 		ListView mmlFileListView;
 		readonly DataField<string> mmlFileField = new DataField<string> ();
 		private ListView masterPluginListView;

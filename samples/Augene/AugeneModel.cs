@@ -204,6 +204,42 @@ namespace Augene {
 			RefreshRequested?.Invoke ();
 		}
 
+		public void ProcessNewAudioGraph (bool selectFileInsteadOfNewFile)
+		{
+			if (selectFileInsteadOfNewFile) {
+				var files = Dialogs.ShowOpenFileDialog ("Select existing AudioGraph file",
+					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
+				if (files.Any ())
+					AddNewAudioGraph (files [0]);
+			} else {
+				var files = Dialogs.ShowSaveFileDialog ("New AudioGraph file",
+					new DialogAbstraction.DialogOptions { InitialDirectory = Path.GetDirectoryName(this.ProjectFileName) });
+				if (files.Any ()) {
+					File.WriteAllText (files [0], JuceAudioGraph.EmptyAudioGraph);
+					AddNewAudioGraph (files [0]);
+				}
+			}
+		}
+
+		public void AddNewAudioGraph (string filename)
+		{
+			int newGraphId = 1 + (int) Project.AudioGraphs.Count;
+			while (Project.Tracks.Any (t => t.Id == newGraphId.ToString ()))
+				newGraphId++;
+			Project.AudioGraphs.Add (new AugeneAudioGraph {Id = newGraphId.ToString (), Source = GetItemFileRelativePath (filename)});
+			
+			RefreshRequested?.Invoke ();
+		}
+
+		public void ProcessDeleteAudioGraphs (IEnumerable<string> audioGraphIdsToRemove)
+		{
+			var graphsRemaining = Project.AudioGraphs.Where (t => !audioGraphIdsToRemove.Contains (t.Id)).ToArray ();
+			Project.AudioGraphs.Clear ();
+			Project.AudioGraphs.AddRange (graphsRemaining);
+
+			RefreshRequested?.Invoke ();
+		}
+
 		public void ProcessNewMmlFile (bool selectFileInsteadOfNewFile)
 		{
 			if (selectFileInsteadOfNewFile) {
