@@ -6,7 +6,6 @@ using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Xml;
 using Commons.Music.Midi;
 using Commons.Music.Midi.Mml;
@@ -492,7 +491,7 @@ namespace Augene {
 		public void ProcessPlay ()
 		{
 			if (string.IsNullOrWhiteSpace (ConfigAugenePlayerPath))
-				Dialogs.ShowWarning ("augene-player path is not configured [File > Configure].");
+				Dialogs.ShowWarning ("AugenePlayer path is not configured [File > Configure].");
 			else {
 				ProcessCompile ();
 				if (OutputEditFileName != null)

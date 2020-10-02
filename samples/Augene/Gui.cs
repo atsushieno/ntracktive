@@ -426,7 +426,7 @@ namespace Augene
 				box.PackStart (button);
 				vbox.PackStart (box);
 			};
-			f ("Path to augene-player: ", pentry);
+			f ("Path to AugenePlayer: ", pentry);
 			f ("Path to AudioPluginHost: ", aentry);
 			var ok = new Button ("OK");
 			ok.Clicked += delegate { dlg.Respond (Command.Ok); };
