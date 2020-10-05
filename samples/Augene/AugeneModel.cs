@@ -378,21 +378,32 @@ namespace Augene {
 					a.Program == program &&
 					(a.BankMsb == msb || a.BankMsb == null && msb == "0") &&
 					(a.BankLsb == lsb || a.BankLsb == null && lsb == "0"));
-				if (ag != null)
+				if (ag != null) {
+					var existingPlugins = track.Plugins.ToArray ();
+					track.Plugins.Clear ();
 					foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
 						JuceAudioGraph.Load (XmlReader.Create (abspath (ag.Source))))))
 						track.Plugins.Add (p);
+					// recover volume and level at the end.
+					foreach (var p in existingPlugins)
+						track.Plugins.Add (p);
+				}
 			}
 
 			// Step 2: assign audio graphs by INSTRUMENTNAME (if named). It will overwrite bank mapping.
 			foreach (var track in edit.Tracks.OfType<TrackElement> ()) {
 				if (track.Extension_InstrumentName == null)
 					continue;
+				var existingPlugins = track.Plugins.ToArray ();
+				track.Plugins.Clear ();
 				var ag = audioGraphs.FirstOrDefault (a => a.Id == track.Extension_InstrumentName);
 				if (ag != null)
 					foreach (var p in ToTracktion (AugenePluginSpecifier.FromAudioGraph (
 						JuceAudioGraph.Load (XmlReader.Create (abspath (ag.Source))))))
 						track.Plugins.Add (p);
+				// recover volume and level at the end.
+				foreach (var p in existingPlugins)
+					track.Plugins.Add (p);
 			}
 
 			// Step 3: assign audio graphs by TRACKNAME (if named). It will overwrite all above.
@@ -450,6 +461,7 @@ namespace Augene {
 				Name = a.Name,
 				Manufacturer = a.Manufacturer,
 				State = a.State,
+				Volume = 1.0 // maybe? at least we have to avoid default 0.0
 			});
 		}
 
