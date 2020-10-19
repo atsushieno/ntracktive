@@ -84,7 +84,9 @@ namespace Augene
 			model.Dialogs = new XwtDialogs ();
 			model.RefreshRequested += ResetContent;
 			model.LoadConfiguration ();
-			if (!string.IsNullOrWhiteSpace (model.LastProjectFile))
+			if (model.ProjectFileName != null)
+				model.ProcessLoadProjectFile (model.ProjectFileName!);
+			else if (!string.IsNullOrWhiteSpace (model.LastProjectFile))
 				model.ProcessLoadProjectFile (model.LastProjectFile!);
 		}
 

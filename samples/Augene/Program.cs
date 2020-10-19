@@ -68,34 +68,20 @@ namespace Augene
 				ConfigAudioPluginHostPath = audiopluginhost,
 				ConfigAugenePlayerPath = augenePlayer
 			};
-			if (gui || !rest.Any ()) {
-				GuiApplication.RunGui (model);
-				return;
-			}
 
 			model.Dialogs = new ConsoleDialogs ();
 			
 			var serializer = new XmlSerializer (typeof (AugeneProject));
 			model.Project = new AugeneProject ();
-			if (args.Length > 0) {
-				model.Project = AugeneProject.Load (args [0]);
-				model.ProjectFileName = args [0];
-			}
-			else {
-				model.Project.MmlFiles.Add ("samples/sample.mugene");
-				model.Project.MmlStrings.Add ("1 @0 V110 v100 o5 l8 cegcegeg  >c1");
-				model.Project.Tracks.Add (new AugeneTrack {AudioGraph = "sample.filtergraph", Id = "1"});
-				model.ProjectFileName = Path.Combine (Directory.GetCurrentDirectory (), "dummy.augene");
-				
-				Console.Error.Write ("Create a project that looks like this:");
-
-				// dump project content.
-				var memoryStream = new MemoryStream ();
-				serializer.Serialize (memoryStream, model.Project);
-				memoryStream.Position = 0;
-				Console.Error.WriteLine (new StreamReader (memoryStream).ReadToEnd ());
+			if (rest.Any ()) {
+				model.Project = AugeneProject.Load (rest.First ());
+				model.ProjectFileName = rest.First ();
 			}
 
+			if (gui || !args.Any ()) {
+				GuiApplication.RunGui (model);
+				return;
+			}
 			model.Compile ();
 		}
 	}
