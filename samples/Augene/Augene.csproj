@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="Mono.Options" Version="6.6.0.161" />
-    <PackageReference Include="mugene" Version="1.2.6" />
+    <PackageReference Include="mugene" Version="1.3.0" />
     <PackageReference Include="Xwt" Version="0.2.227" />
     <PackageReference Include="Xwt.Gtk" Version="0.2.227" />
     <PackageReference Include="Xwt.WPF" Version="0.2.227" />
